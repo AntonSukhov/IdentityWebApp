@@ -2,23 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using IdentityWebApp.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace IdentityWebApp.Areas.Identity.Pages.Account
 {
@@ -47,8 +41,7 @@ namespace IdentityWebApp.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Получает или задаёт модель привязки для страницы регистрации пользователя системы.
         /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
@@ -66,37 +59,43 @@ namespace IdentityWebApp.Areas.Identity.Pages.Account
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Модель привязки для страницы регистрации пользователя системы.
         /// </summary>
         public class InputModel
         {
             /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
+            /// Получает или задаёт адрес электронной почты пользователя системы.
             /// </summary>
+            /// <remarks>
+            /// Это значение используется в качестве логина пользователя системы его аутентификации.
+            /// </remarks>
             [Required]
             [EmailAddress]
-            [Display(Name = "Email")]
+            [Display(Name = "Адрес электронной почты")]
             public string Email { get; set; }
 
             /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
+            /// Получает или задаёт имя пользователя системы.
             /// </summary>
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [Display(Name = "Имя")]
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Получает или задаёт пароль пользователя системы.
+            /// </summary>
+            [Required]
+            [StringLength(100, ErrorMessage = "{0} должен иметь длину не менее {2} и не более {1} символов.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [Display(Name = "Пароль")]
             public string Password { get; set; }
 
             /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
+            /// Получает или задаёт подтверждение пароля пользователя системы.
             /// </summary>
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+            [Display(Name = "Подтверждение пароля")]
+            [Compare("Password", ErrorMessage = "Пароль и подтверждение пароля не совпадают.")]
             public string ConfirmPassword { get; set; }
         }
 
@@ -107,6 +106,11 @@ namespace IdentityWebApp.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
 
+        /// <summary>
+        /// Асинхронное выполнение обработки POST-запроса.
+        /// </summary>
+        /// <param name="returnUrl">Адрес, на который нужно перенаправить пользователя после выполнения операции.</param>
+        /// <returns>Результат асинхронного выполнения обработки POST-запроса.</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
@@ -121,7 +125,10 @@ namespace IdentityWebApp.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User created a new account with password.");
+                    _logger.LogInformation("Пользователь создал новую учётную запись с паролем.");
+
+                    var fullNameClaim = new Claim("FullName", Input.Name);
+                    await _userManager.AddClaimAsync(user, fullNameClaim);
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -132,8 +139,8 @@ namespace IdentityWebApp.Areas.Identity.Pages.Account
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    await _emailSender.SendEmailAsync(Input.Email, "Подтвердите свой адрес электронной почты",
+                        $"Пожалуйста, подтвердите свою учётную запись с помощью <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>нажав здесь</a>.");
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
