@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace IndentityWebApp.Data;
+namespace IdentityWebApp.Data;
 
 /// <summary>
 /// Пользователь приложения.

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using IndentityWebApp.Data;
+using IdentityWebApp.Data;
 
-namespace IndentityWebApp;
+namespace IdentityWebApp;
 
 public class Program
 {
