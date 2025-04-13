@@ -1,6 +1,9 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using IdentityWebApp.Data;
+using IdentityWebApp.Other;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using IdentityWebApp.Services.Senders;
+using IdentityWebApp.Services;
 
 namespace IdentityWebApp;
 
@@ -10,16 +13,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-            throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString));
-        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-        builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            .AddEntityFrameworkStores<ApplicationDbContext>();
-        builder.Services.AddRazorPages();
+        ConfigureServices(builder);
 
         var app = builder.Build();
 
@@ -47,5 +41,33 @@ public class Program
            .WithStaticAssets();
 
         app.Run();
+    }
+
+    /// <summary>
+    /// Добавление и настройка сервисов.
+    /// </summary>
+    /// <param name="builder">Создатель веб-приложения.</param>
+    /// <exception cref="InvalidOperationException"/>
+    private static void ConfigureServices(WebApplicationBuilder builder)
+    {
+        var connectionString = builder.Configuration.GetConnectionString(ConstantsService.DefaultConnectionSectionName) ?? 
+            throw new InvalidOperationException($"Строка подключения '{ConstantsService.DefaultConnectionSectionName}' не найдена.");
+            
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(connectionString));
+        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+        builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            .AddEntityFrameworkStores<ApplicationDbContext>();
+        builder.Services.AddRazorPages();
+
+      
+        var smtpSettings = builder.Configuration.GetSection(ConstantsService.SmtpSettingsSectionName) ?? 
+            throw new InvalidOperationException($"Секция '{ConstantsService.SmtpSettingsSectionName}' не найдена.");
+
+        builder.Services.Configure<SmtpSettings>(smtpSettings);
+
+        builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+
     }
 }
