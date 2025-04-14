@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
@@ -13,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Security.Claims;
+using IdentityWebApp.Areas.Identity.Models;
 
 namespace IdentityWebApp.Areas.Identity.Pages.Account
 {
@@ -57,47 +57,6 @@ namespace IdentityWebApp.Areas.Identity.Pages.Account
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
-
-        /// <summary>
-        /// Модель привязки для страницы регистрации пользователя системы.
-        /// </summary>
-        public class InputModel
-        {
-            /// <summary>
-            /// Получает или задаёт адрес электронной почты пользователя системы.
-            /// </summary>
-            /// <remarks>
-            /// Это значение используется в качестве логина пользователя системы его аутентификации.
-            /// </remarks>
-            [Required]
-            [EmailAddress]
-            [Display(Name = "Адрес электронной почты")]
-            public string Email { get; set; }
-
-            /// <summary>
-            /// Получает или задаёт имя пользователя системы.
-            /// </summary>
-            [Required]
-            [Display(Name = "Имя")]
-            public string Name { get; set; }
-
-            /// <summary>
-            /// Получает или задаёт пароль пользователя системы.
-            /// </summary>
-            [Required]
-            [StringLength(100, ErrorMessage = "{0} должен иметь длину не менее {2} и не более {1} символов.", MinimumLength = 6)]
-            [DataType(DataType.Password)]
-            [Display(Name = "Пароль")]
-            public string Password { get; set; }
-
-            /// <summary>
-            /// Получает или задаёт подтверждение пароля пользователя системы.
-            /// </summary>
-            [DataType(DataType.Password)]
-            [Display(Name = "Подтверждение пароля")]
-            [Compare("Password", ErrorMessage = "Пароль и подтверждение пароля не совпадают.")]
-            public string ConfirmPassword { get; set; }
-        }
 
 
         public async Task OnGetAsync(string returnUrl = null)
