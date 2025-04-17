@@ -72,6 +72,12 @@ public class Program
 
         builder.Services.Configure<SmtpSettings>(smtpSettings);
 
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.Name = ConstantsService.DefaultCookieName;
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(20);  //Задает дату истечения срока действия файла cookie
+        });
+
         builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
     }
