@@ -41,10 +41,10 @@ namespace IdentityWebApp.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Получает или задаёт модель привязки для страницы регистрации пользователя системы.
+        /// Получает или задаёт модель регистрации пользователя системы.
         /// </summary>
         [BindProperty]
-        public InputModel Input { get; set; }
+        public UserRegistrationModel Input { get; set; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used

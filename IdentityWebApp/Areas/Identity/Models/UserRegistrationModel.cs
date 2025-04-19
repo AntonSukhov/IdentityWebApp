@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 namespace IdentityWebApp.Areas.Identity.Models;
 
 /// <summary>
-/// Модель привязки для страницы регистрации пользователя системы.
+/// Модель регистрации пользователя системы.
 /// </summary>
-public class InputModel
+public class UserRegistrationModel
 {
     /// <summary>
     /// Получает или задаёт адрес электронной почты пользователя системы.

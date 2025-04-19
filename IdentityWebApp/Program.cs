@@ -12,7 +12,7 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
+        
         ConfigureServices(builder);
 
         var app = builder.Build();
@@ -57,13 +57,18 @@ public class Program
             options.UseNpgsql(connectionString));
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-        builder.Services.AddDefaultIdentity<ApplicationUser>(options => { 
-            
-                options.SignIn.RequireConfirmedAccount = true;
-                options.Password.RequiredLength = 8;
-                options.Password.RequiredUniqueChars = 6;
-            })
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+        builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+        {
+
+            options.SignIn.RequireConfirmedAccount = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequiredUniqueChars = 6;
+            options.Lockout.MaxFailedAccessAttempts = 5;                      //Максимально допустимое количество неудачных попыток доступа
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); //Время блокировки пользователя по умолчанию.
+            options.Lockout.AllowedForNewUsers = true;                        //Новый пользователь может быть заблокирован при неудачных попытках доступа.
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>();
+
         builder.Services.AddRazorPages();
 
       
