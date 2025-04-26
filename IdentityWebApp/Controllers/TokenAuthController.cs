@@ -71,6 +71,13 @@ public class TokenAuthController : ControllerBase
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
          
+
+        var roles = await _userManager.GetRolesAsync(user);
+        foreach (var role in roles)
+        {
+            authClaims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
         var apiKey = _configuration[ConstantsService.ApiKeySectionName] ?? string.Empty;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKey));
 
