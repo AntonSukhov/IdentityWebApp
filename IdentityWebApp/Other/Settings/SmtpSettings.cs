@@ -1,6 +1,6 @@
 using System.Net.Mail;
 
-namespace IdentityWebApp.Other;
+namespace IdentityWebApp.Other.Settings;
 
 /// <summary>
 /// Настройки протокола SMTP.

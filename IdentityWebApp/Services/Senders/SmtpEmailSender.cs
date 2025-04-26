@@ -1,4 +1,4 @@
-using IdentityWebApp.Other;
+using IdentityWebApp.Other.Settings;
 using IdentityWebApp.Services.Creators;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;

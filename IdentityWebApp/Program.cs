@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using IdentityWebApp.Data;
-using IdentityWebApp.Other;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using IdentityWebApp.Services.Senders;
 using IdentityWebApp.Services;
+using IdentityWebApp.Other.Settings;
 
 namespace IdentityWebApp;
 
@@ -39,6 +39,7 @@ public class Program
         app.MapStaticAssets();
         app.MapRazorPages()
            .WithStaticAssets();
+        app.MapControllers();
 
         app.Run();
     }
@@ -70,12 +71,17 @@ public class Program
         .AddEntityFrameworkStores<ApplicationDbContext>();
 
         builder.Services.AddRazorPages();
-
+        builder.Services.AddControllers();
       
         var smtpSettings = builder.Configuration.GetSection(ConstantsService.SmtpSettingsSectionName) ?? 
-            throw new InvalidOperationException($"Секция '{ConstantsService.SmtpSettingsSectionName}' не найдена.");
+            throw new InvalidOperationException(ConstantsService.GenerateSectionNotFoundErrorMessage(ConstantsService.SmtpSettingsSectionName));
 
         builder.Services.Configure<SmtpSettings>(smtpSettings);
+
+        var jwtSettings = builder.Configuration.GetSection(ConstantsService.JwtSettingsSectionName) ?? 
+            throw new InvalidOperationException(ConstantsService.GenerateSectionNotFoundErrorMessage(ConstantsService.JwtSettingsSectionName));
+
+        builder.Services.Configure<JwtSettings>(jwtSettings);
 
         builder.Services.ConfigureApplicationCookie(options =>
         {

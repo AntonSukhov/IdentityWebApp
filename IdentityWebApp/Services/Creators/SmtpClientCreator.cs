@@ -1,5 +1,5 @@
 using System.Net.Mail;
-using IdentityWebApp.Other;
+using IdentityWebApp.Other.Settings;
 
 namespace IdentityWebApp.Services.Creators;
 
