@@ -5,6 +5,8 @@ using IdentityWebApp.Areas.Identity.Models;
 using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
 using IdentityWebApp.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -102,10 +104,18 @@ public class TokenAuthController : ControllerBase
     /// Предоставляет результат аутентификации пользователя.
     /// </summary>
     /// <returns>Результат аутентификации пользователя.</returns>
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [HttpGet("data")]
     public IActionResult Data()
     {
-        return Ok();
+        var data = new []
+        {
+            new {Id = 1, Name = "Name1"}, 
+            new {Id = 2, Name = "Name2"},
+            new {Id = 3, Name = "Name3"}
+        };
+
+        return Ok(data);
     }
 
     #endregion

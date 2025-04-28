@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using IdentityWebApp.Services.Senders;
 using IdentityWebApp.Services;
 using IdentityWebApp.Other.Settings;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace IdentityWebApp;
 
@@ -51,6 +53,8 @@ public class Program
     /// <exception cref="InvalidOperationException"/>
     private static void ConfigureServices(WebApplicationBuilder builder)
     {
+        var isDevelopment = builder.Environment.IsDevelopment();
+        
         var connectionString = builder.Configuration.GetConnectionString(ConstantsService.DefaultConnectionSectionName) ?? 
             throw new InvalidOperationException($"Строка подключения '{ConstantsService.DefaultConnectionSectionName}' не найдена.");
             
@@ -90,6 +94,26 @@ public class Program
         });
 
         builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+
+        //Настраиваем аутентификацию: работу с JWT-токенами на предъявителя.
+        builder.Services.AddAuthentication()
+                        .AddJwtBearer(options => 
+        {
+            var apiKey = builder.Configuration[ConstantsService.ApiKeySectionName] ?? string.Empty;
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKey));
+
+            options.SaveToken = true;                       //Токен будет сохранен в AuthenticationProperties
+            options.RequireHttpsMetadata = !isDevelopment;  //Если задано значение false, то приложение будет работать и с обычным HTTP, 
+                                                            //что может быть полезно для некоторых сценариев тестирования, но в рабочем окружении
+                                                            //этого, конечно же, следует избегать.
+
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                 ValidateAudience = false,  //Выполнять или нет проверку аудитории токена или его предполагаемого получателя.
+                 ValidateIssuer = false,    //Выполнять или нет проверку издателя токена.
+                 IssuerSigningKey = key
+            };
+        });
 
     }
 }
