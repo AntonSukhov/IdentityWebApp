@@ -55,7 +55,7 @@ public class TokenAuthController : ControllerBase
     /// <param name="model">Модель, содержащая учетные данные пользователя, включая имя пользователя и пароль.</param>
     /// <returns>Результат аутентификации пользователя.</returns>
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] UserLoginModel model)
+    public async Task<IActionResult> LoginAsync([FromBody] UserLoginModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
