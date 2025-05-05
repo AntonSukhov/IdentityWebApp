@@ -93,10 +93,10 @@ public class TokenAuthController : ControllerBase
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
-        return Ok(new
+        return Ok(new TokenModel
         {
-            token = tokenHandler.WriteToken(token),
-            expires = token.ValidTo
+            Value = tokenHandler.WriteToken(token),
+            Expires = token.ValidTo
         });
     }
 
