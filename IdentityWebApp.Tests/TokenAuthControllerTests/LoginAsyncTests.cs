@@ -4,6 +4,7 @@ using IdentityWebApp.Areas.Identity.Models;
 using IdentityWebApp.Common.Extensions;
 using IdentityWebApp.Common.Services;
 using IdentityWebApp.Controllers;
+using IdentityWebApp.Tests.TestData.TokenAuthController;
 
 namespace IdentityWebApp.Tests.TokenAuthControllerTests;
 
@@ -22,14 +23,19 @@ public class LoginAsyncTests
     #region Методы
 
     /// <summary>
-    /// Тест проверки метода аутентификации пользователя для существующего пользователя.
+    /// Тестирует метод аутентификации пользователя для существующего пользователя.
+    /// Проверяет, что при повторном запросе токена возвращается тот же токен.
     /// </summary>
-    /// <param name="userLogin">Модель, содержащая учетные данные пользователя, включая имя пользователя и пароль.</param>
-    /// <returns></returns>
+    /// <param name="email">Электронная почта пользователя.</param>
+    /// <param name="password">Пароль пользователя для аутентификации.</param>
+    /// <param name="rememberMe">Флаг, указывающий, следует ли запомнить информацию о пользователе
+    /// для будущих сессий.</param>
+    /// <returns>Асинхронная задача, представляющая результат выполнения теста.</returns>
     [Theory]
-    [MemberData(nameof(GetForExistedUserTestData))]
-    public async Task ForExistedUser(UserLoginModel userLogin)
+    [ClassData(typeof(ExistedUserTestData))]
+    public async Task ForExistedUser(string email, string password, bool rememberMe)
     {
+        var userLogin = new UserLoginModel { Email = email, Password = password, RememberMe = rememberMe };
         var expected = await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin);
 
         expected.Should()
@@ -39,14 +45,51 @@ public class LoginAsyncTests
     }
 
     /// <summary>
+    /// Тестирует метод аутентификации пользователя для существующего пользователя.
+    /// Проверяет, что при повторном запросе токена возвращается тот же токен.
+    /// </summary>
+    /// <param name="email">Электронная почта пользователя.</param>
+    /// <param name="password">Пароль пользователя для аутентификации.</param>
+    /// <param name="rememberMe">Флаг, указывающий, следует ли запомнить информацию о пользователе
+    /// для будущих сессий.</param>
+    /// <returns>Асинхронная задача, представляющая результат выполнения теста.</returns>
+    [Theory]
+    [ClassData(typeof(ExistedUserReturnSameTokenOnRepeatedRequestTestData))]
+    public async Task ForExistedUserReturnSameTokenOnRepeatedRequest(string email, string password, bool rememberMe)
+    {
+        var userLogin = new UserLoginModel { Email = email, Password = password, RememberMe = rememberMe };
+        var expectedFirst = await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin);
+        var expectedSecond = await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin);
+
+        // Проверка, что первый токен не равен null
+        expectedFirst.Should().NotBeNull();
+
+        // Проверка, что второй токен не равен null
+        expectedSecond.Should().NotBeNull();
+
+        // Проверка, что значения токенов совпадают
+        expectedFirst.Value.Should().Be(expectedSecond.Value);
+
+        // Проверка, что время истечения токенов также совпадает
+        expectedFirst.Expires.Should().Be(expectedSecond.Expires);
+        
+        // Проверка, что время истечения первого токена больше текущего времени
+        expectedFirst.Expires.Should().BeAfter(DateTime.UtcNow);
+                              
+    }
+
+    /// <summary>
     /// Тест проверки метода аутентификации пользователя для не существующего пользователя.
     /// </summary>
-    /// <param name="userLogin">Модель, содержащая учетные данные пользователя, включая имя пользователя и пароль.</param>
-    /// <returns></returns>
+    /// <param name="email">Электронная почта пользователя.</param>
+    /// <param name="password">Пароль пользователя для аутентификации.</param>
+    /// <returns>Асинхронная задача, представляющая результат выполнения теста.</returns>
     [Theory]
-    [MemberData(nameof(GetForNotExistedUserTestData))]
-    public async Task ForNotExistedUser(UserLoginModel userLogin)
+    [ClassData(typeof(NonExistedUserTestData))]
+    public async Task ForNotExistedUser(string email, string password)
     {
+        var userLogin = new UserLoginModel { Email = email, Password = password };
+
         var expected = await Assert.ThrowsAsync<HttpRequestException>
         (
             async () => await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin)
@@ -60,12 +103,15 @@ public class LoginAsyncTests
     /// <summary>
     /// Тест проверки метода аутентификации пользователя для некорректных учетных данных пользователя.
     /// </summary>
-    /// <param name="userLogin">Модель, содержащая учетные данные пользователя, включая имя пользователя и пароль.</param>
-    /// <returns></returns>
+    /// <param name="email">Электронная почта пользователя.</param>
+    /// <param name="password">Пароль пользователя.</param>
+    /// <returns>Асинхронная задача, представляющая результат выполнения теста.</returns>
     [Theory]
-    [MemberData(nameof(GetForIncorrectDataTestData))]
-    public async Task ForIncorrectData(UserLoginModel userLogin)
+    [ClassData(typeof(IncorrectDataTestData))]
+    public async Task ForIncorrectData(string email, string password)
     {
+        var userLogin = new UserLoginModel { Email = email, Password = password };
+
         var expected = await Assert.ThrowsAsync<HttpRequestException>
         (
             async () => await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin)
@@ -73,100 +119,6 @@ public class LoginAsyncTests
 
         expected.Should().NotBeNull()
                          .And.Match<HttpRequestException>(p => p.StatusCode == HttpStatusCode.BadRequest);
-    }
-
-    /// <summary>
-    /// Данные для тестирования аутентификации существующего пользователя.
-    /// </summary>
-    public static IEnumerable<object[]> GetForExistedUserTestData()
-    {
-        yield return new object[] 
-        { 
-            new UserLoginModel
-            { 
-                Email = "realcomrade2011@gmail.com", 
-                Password = "ZZTop29121986_"
-            }
-        };
-        yield return new object[] 
-        { 
-            new UserLoginModel
-            { 
-                Email = "realcomrade2011@gmail.com", 
-                Password = "ZZTop29121986_",
-                RememberMe = true
-            }
-        };
-    }
-
-    /// <summary>
-    /// Данные для тестирования аутентификации несуществующего пользователя.
-    /// </summary>
-    public static IEnumerable<object[]> GetForNotExistedUserTestData()
-    {
-        yield return new object[] 
-        { 
-            new UserLoginModel
-            { 
-                Email = $"user_{Guid.NewGuid().ToString()}@mail.ru", 
-                Password = short.MaxValue.ToString()
-            }
-        };
-        yield return new object[] 
-        { 
-            new UserLoginModel
-            { 
-                Email = "realcomrade2011@gmail.com", 
-                Password = short.MaxValue.ToString()
-            }
-        };
-        yield return new object[] 
-        { 
-            new UserLoginModel
-            { 
-                Email = $"user_{Guid.NewGuid().ToString()}@mail.ru", 
-                Password = "ZZTop29121986_"
-            }
-        };
-    }
-
-    /// <summary>
-    /// Данные для тестирования аутентификации пользователя для некорректных входных данных.
-    /// </summary>
-    public static IEnumerable<object[]> GetForIncorrectDataTestData()
-    {
-        yield return new object[] 
-        { 
-            new UserLoginModel
-            { 
-                Email = $"user_{Guid.NewGuid().ToString()}", 
-                Password = short.MaxValue.ToString()
-            }
-        };
-        yield return new object[] 
-        { 
-            new UserLoginModel
-            { 
-                Email = string.Empty, 
-                Password = short.MaxValue.ToString()
-            }
-        };
-        yield return new object[] 
-        { 
-            new UserLoginModel
-            { 
-                Email = " ", 
-                Password = short.MaxValue.ToString()
-            }
-        };
-        yield return new object[] 
-        { 
-            new UserLoginModel
-            { 
-                Email = $"user_{Guid.NewGuid().ToString()}@mail.ru", 
-                Password = " "
-            }
-        };
     }
 
     #endregion
