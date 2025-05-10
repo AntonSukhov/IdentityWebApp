@@ -5,8 +5,6 @@ using IdentityWebApp.Areas.Identity.Models;
 using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
 using IdentityWebApp.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -26,6 +24,7 @@ public class TokenAuthController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly JwtSettings _jwtSettings;
+    private readonly ICacheService<string, string> _userTokenCacheService;
 
     #endregion
 
@@ -37,12 +36,14 @@ public class TokenAuthController : ControllerBase
     /// <param name="configuration">Объект конфигурации приложения.</param>
     /// <param name="userManager">Объект управления пользователями.</param>
     /// <param name="jwtSettings">Настройки JWT-токена.</param>
+    /// <param name="cacheService">Сервис работы с кэшем.</param>
     public TokenAuthController(IConfiguration configuration, UserManager<ApplicationUser> userManager, 
-    IOptions<JwtSettings> jwtSettings)
+        IOptions<JwtSettings> jwtSettings, ICacheService<string, string> cacheService)
     {
         _configuration = configuration;
         _userManager = userManager;
         _jwtSettings = jwtSettings.Value;
+        _userTokenCacheService = cacheService;
     }
 
     #endregion
@@ -66,57 +67,87 @@ public class TokenAuthController : ControllerBase
             return Unauthorized();
         }
 
+        var cachedToken = GetCachedToken(user.Id);
+
+        if (cachedToken != null)
+        {
+            return Ok(cachedToken);
+        }
+     
+        var token = await GenerateTokenAsync(user);
+
+        return Ok(token);
+    }
+
+    #region Закрытые методы
+
+    /// <summary>
+    /// Получение кэшированного токена для пользователя.
+    /// </summary>
+    /// <param name="userId">Идентификатор пользователя.</param>
+    /// <returns>Кэшированный токен или null, если токен недоступен или истек.</returns>
+    private TokenModel? GetCachedToken(string userId)
+    {
+        if (_userTokenCacheService.TryGetValue(userId, out var cachedToken))
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(cachedToken);
+
+            if (jwtToken.ValidTo > DateTime.UtcNow)
+            {
+                return new TokenModel
+                {
+                    Value = cachedToken,
+                    Expires = jwtToken.ValidTo
+                };
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Генерация нового JWT-токена для указанного пользователя.
+    /// </summary>
+    /// <param name="user">Пользователь, для которого генерируется токен.</param>
+    /// <returns>Сгенерированный токен.</returns>
+    private async Task<TokenModel> GenerateTokenAsync(ApplicationUser  user)
+    {
         var authClaims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.UserName ?? string.Empty),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
-         
 
         var roles = await _userManager.GetRolesAsync(user);
-        foreach (var role in roles)
-        {
-            authClaims.Add(new Claim(ClaimTypes.Role, role));
-        }
+
+        authClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var apiKey = _configuration[ConstantsService.ApiKeySectionName] ?? string.Empty;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKey));
 
-        var tokenDescriptor = new SecurityTokenDescriptor()
+        var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(authClaims),
-            Expires = DateTime.Now.AddMinutes(_jwtSettings.ExpiresInMinutes),
-            SigningCredentials = new SigningCredentials(key , SecurityAlgorithms.HmacSha512Signature)
+            Expires = DateTime.UtcNow.AddSeconds(_jwtSettings.ExpiresInSeconds),
+            SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature)
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
+        var tokenAsString = tokenHandler.WriteToken(token);
 
-        return Ok(new TokenModel
+        _userTokenCacheService.Set(user.Id, tokenAsString, token.ValidTo);
+
+        return new TokenModel
         {
-            Value = tokenHandler.WriteToken(token),
+            Value = tokenAsString,
             Expires = token.ValidTo
-        });
-    }
-
-    /// <summary>
-    /// Предоставляет результат аутентификации пользователя.
-    /// </summary>
-    /// <returns>Результат аутентификации пользователя.</returns>
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [HttpGet("data")]
-    public IActionResult Data()
-    {
-        var data = new []
-        {
-            new {Id = 1, Name = "Name1"}, 
-            new {Id = 2, Name = "Name2"},
-            new {Id = 3, Name = "Name3"}
         };
-
-        return Ok(data);
     }
+
+    #endregion
 
     #endregion
 }

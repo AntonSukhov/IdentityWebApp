@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using IdentityWebApp.Data;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using IdentityWebApp.Services.Senders;
 using IdentityWebApp.Services;
 using IdentityWebApp.Other.Settings;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using IdentityWebApp.Extensions;
 
 namespace IdentityWebApp;
 
@@ -73,7 +72,7 @@ public class Program
         })
         .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        builder.Services.AddRazorPages();
+        builder.Services.AddRazorPages();                                 
         builder.Services.AddControllers();
       
         var smtpSettings = builder.Configuration.GetSection(ConstantsService.SmtpSettingsSectionName) ?? 
@@ -92,7 +91,7 @@ public class Program
             options.ExpireTimeSpan = TimeSpan.FromMinutes(20);  //Задает дату истечения срока действия файла cookie
         });
 
-        builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+        builder.Services.RegisterServices(); 
 
         //Настраиваем аутентификацию: работу с JWT-токенами на предъявителя.
         builder.Services.AddAuthentication()
