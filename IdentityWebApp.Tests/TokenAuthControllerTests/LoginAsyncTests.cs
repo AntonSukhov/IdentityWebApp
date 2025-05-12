@@ -2,21 +2,36 @@ using System.Net;
 using FluentAssertions;
 using IdentityWebApp.Areas.Identity.Models;
 using IdentityWebApp.Common.Extensions;
-using IdentityWebApp.Common.Services;
 using IdentityWebApp.Controllers;
+using IdentityWebApp.Data;
+using IdentityWebApp.Tests.Fixtures;
 using IdentityWebApp.Tests.TestData.TokenAuthController;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
 
 namespace IdentityWebApp.Tests.TokenAuthControllerTests;
 
 /// <summary>
 /// Тесты для метода <see cref="TokenAuthController.LoginAsync"/>.
 /// </summary>
-public class LoginAsyncTests
+public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
 {
     #region Поля
+    
+    private readonly TokenAuthControllerFixture _fixture;
 
-    private readonly HttpClient _httpClient = HttpClientService.CreateHttpClient();
-    private readonly string _methodUrl = "http://localhost:5062/api/token-auth/login";
+    #endregion
+
+    #region Конструкторы
+
+    /// <summary>
+    /// Конструктор по умолчанию.
+    /// </summary>
+    /// <param name="fixture">Настройка контекста для тестирования контроллера аутентификации пользователя системы.</param>
+    public LoginAsyncTests(TokenAuthControllerFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     #endregion
 
@@ -26,40 +41,50 @@ public class LoginAsyncTests
     /// Тестирует метод аутентификации пользователя для существующего пользователя.
     /// Проверяет, что при повторном запросе токена возвращается тот же токен.
     /// </summary>
-    /// <param name="email">Электронная почта пользователя.</param>
+    /// <param name="login">Логин пользователя.</param>
     /// <param name="password">Пароль пользователя для аутентификации.</param>
-    /// <param name="rememberMe">Флаг, указывающий, следует ли запомнить информацию о пользователе
     /// для будущих сессий.</param>
     /// <returns>Асинхронная задача, представляющая результат выполнения теста.</returns>
     [Theory]
     [ClassData(typeof(ExistedUserTestData))]
-    public async Task ForExistedUser(string email, string password, bool rememberMe)
+    public async Task ForExistedUser(string login, string password)
     {
-        var userLogin = new UserLoginModel { Email = email, Password = password, RememberMe = rememberMe };
-        var expected = await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin);
+        var userLogin = new UserLoginModel { Login = login, Password = password};
+        var user = new ApplicationUser { Id = Guid.NewGuid().ToString(), Email = userLogin.Login, UserName = userLogin.Login };
 
-        expected.Should()
-                .NotBeNull()
-                .And.Match<TokenModel>(p => !string.IsNullOrEmpty(p.Value) &&
-                                             p.Expires > DateTime.UtcNow);
+        _fixture.UserManagerMock.Setup(p => p.FindByNameAsync(userLogin.Login))
+                                .Returns(Task.FromResult<ApplicationUser?>(user));
+
+        _fixture.UserManagerMock.Setup(p => p.CheckPasswordAsync(user, userLogin.Password))
+                                .Returns(Task.FromResult(true));
+
+        _fixture.UserManagerMock.Setup(p => p.GetRolesAsync(user))
+                                .Returns(Task.FromResult<IList<string>>([]));
+
+
+        var expected = await _fixture.TokenAuthController.LoginAsync(userLogin);
+
+        expected.Should().BeOfType<OkObjectResult>()
+                         .Which.Value.Should().BeOfType<TokenModel>()
+                                              .And.NotBeNull()
+                                              .And.Match<TokenModel>(p => !string.IsNullOrEmpty(p.Value) && 
+                                                                           p.Expires > DateTime.UtcNow);
     }
 
     /// <summary>
     /// Тестирует метод аутентификации пользователя для существующего пользователя.
     /// Проверяет, что при повторном запросе токена возвращается тот же токен.
     /// </summary>
-    /// <param name="email">Электронная почта пользователя.</param>
+    /// <param name="login">Логин пользователя.</param>
     /// <param name="password">Пароль пользователя для аутентификации.</param>
-    /// <param name="rememberMe">Флаг, указывающий, следует ли запомнить информацию о пользователе
-    /// для будущих сессий.</param>
     /// <returns>Асинхронная задача, представляющая результат выполнения теста.</returns>
     [Theory]
     [ClassData(typeof(ExistedUserReturnSameTokenOnRepeatedRequestTestData))]
-    public async Task ForExistedUserReturnSameTokenOnRepeatedRequest(string email, string password, bool rememberMe)
+    public async Task ForExistedUserReturnSameTokenOnRepeatedRequest(string login, string password)
     {
-        var userLogin = new UserLoginModel { Email = email, Password = password, RememberMe = rememberMe };
-        var expectedFirst = await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin);
-        var expectedSecond = await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin);
+        var userLogin = new UserLoginModel { Login = login, Password = password };
+        var expectedFirst = await _fixture.HttpClient.PostAsync<UserLoginModel, TokenModel>(_fixture.LoginMethodUrl, userLogin);
+        var expectedSecond = await _fixture.HttpClient.PostAsync<UserLoginModel, TokenModel>(_fixture.LoginMethodUrl, userLogin);
 
         // Проверка, что первый токен не равен null
         expectedFirst.Should().NotBeNull();
@@ -81,44 +106,23 @@ public class LoginAsyncTests
     /// <summary>
     /// Тест проверки метода аутентификации пользователя для не существующего пользователя.
     /// </summary>
-    /// <param name="email">Электронная почта пользователя.</param>
+    /// <param name="login">Логин пользователя.</param>
     /// <param name="password">Пароль пользователя для аутентификации.</param>
     /// <returns>Асинхронная задача, представляющая результат выполнения теста.</returns>
     [Theory]
     [ClassData(typeof(NonExistedUserTestData))]
-    public async Task ForNotExistedUser(string email, string password)
+    public async Task ForNotExistedUser(string login, string password)
     {
-        var userLogin = new UserLoginModel { Email = email, Password = password };
+        var userLogin = new UserLoginModel { Login = login, Password = password };
 
         var expected = await Assert.ThrowsAsync<HttpRequestException>
         (
-            async () => await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin)
+            async () => await _fixture.HttpClient.PostAsync<UserLoginModel, TokenModel>(_fixture.LoginMethodUrl, userLogin)
         );
 
         expected.Should().NotBeNull()
                          .And.Match<HttpRequestException>(p => p.StatusCode == HttpStatusCode.Unauthorized);
                         
-    }
-
-    /// <summary>
-    /// Тест проверки метода аутентификации пользователя для некорректных учетных данных пользователя.
-    /// </summary>
-    /// <param name="email">Электронная почта пользователя.</param>
-    /// <param name="password">Пароль пользователя.</param>
-    /// <returns>Асинхронная задача, представляющая результат выполнения теста.</returns>
-    [Theory]
-    [ClassData(typeof(IncorrectDataTestData))]
-    public async Task ForIncorrectData(string email, string password)
-    {
-        var userLogin = new UserLoginModel { Email = email, Password = password };
-
-        var expected = await Assert.ThrowsAsync<HttpRequestException>
-        (
-            async () => await _httpClient.PostAsync<UserLoginModel, TokenModel>(_methodUrl, userLogin)
-        );
-
-        expected.Should().NotBeNull()
-                         .And.Match<HttpRequestException>(p => p.StatusCode == HttpStatusCode.BadRequest);
     }
 
     #endregion

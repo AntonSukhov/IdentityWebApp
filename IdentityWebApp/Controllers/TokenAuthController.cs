@@ -60,7 +60,7 @@ public class TokenAuthController : ControllerBase
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        var user = await _userManager.FindByNameAsync(model.Email);
+        var user = await _userManager.FindByNameAsync(model.Login);
 
         if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
         {

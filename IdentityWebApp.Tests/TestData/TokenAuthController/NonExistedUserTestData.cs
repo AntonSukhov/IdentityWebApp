@@ -10,5 +10,9 @@ public class NonExistedUserTestData : TheoryData<string, string>
         Add($"user_{Guid.NewGuid()}@mail.ru", short.MaxValue.ToString());
         Add("realcomrade2011@gmail.com", short.MaxValue.ToString());
         Add($"user_{Guid.NewGuid()}@mail.ru", "ZZTop29121986_");
+        Add($"user_{Guid.NewGuid()}", short.MaxValue.ToString());
+        Add(string.Empty, short.MaxValue.ToString());
+        Add(" ", short.MaxValue.ToString());
+        Add($"user_{Guid.NewGuid()}@mail.ru", " ");
     }
 }

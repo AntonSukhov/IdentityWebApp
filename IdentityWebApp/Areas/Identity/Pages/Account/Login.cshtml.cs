@@ -26,7 +26,7 @@ namespace IdentityWebApp.Areas.Identity.Pages.Account
         /// Получает или задает модель входа пользователя системы.
         /// </summary>
         [BindProperty]
-        public UserLoginModel Input { get; set; }
+        public UserLoginViewModel Input { get; set; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
