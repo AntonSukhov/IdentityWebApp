@@ -91,6 +91,7 @@ public class Program
             options.ExpireTimeSpan = TimeSpan.FromMinutes(20);  //Задает дату истечения срока действия файла cookie
         });
 
+        builder.Services.AddMemoryCache();
         builder.Services.RegisterServices(); 
 
         //Настраиваем аутентификацию: работу с JWT-токенами на предъявителя.
