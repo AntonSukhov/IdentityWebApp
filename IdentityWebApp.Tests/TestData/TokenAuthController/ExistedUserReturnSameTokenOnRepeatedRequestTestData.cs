@@ -8,6 +8,6 @@ public class ExistedUserReturnSameTokenOnRepeatedRequestTestData: TheoryData<str
 {
     public ExistedUserReturnSameTokenOnRepeatedRequestTestData()
     {
-        Add("realcomrade2011@gmail.com", "ZZTop29121986_");
+        Add("email@mail.ru", "password1234");
     }
 }

@@ -4,6 +4,7 @@ using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
 using IdentityWebApp.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -32,13 +33,16 @@ public class TokenAuthControllerFixture
     /// </summary>
     public TokenAuthController TokenAuthController { get; }
 
+    /// <summary>
+    /// Получает сервис работы с кэшем.
+    /// </summary>
+    public ICacheService<string, string> CacheService { get; }
+
     public Mock<IConfiguration> ConfigurationMock { get; }
 
     public Mock<UserManager<ApplicationUser >> UserManagerMock { get; }
 
     public Mock<IOptions<JwtSettings>> JwtSettingsMock { get; }
-
-    public Mock<ICacheService<string, string>> CacheServiceMock { get; }
 
     #endregion
 
@@ -61,13 +65,15 @@ public class TokenAuthControllerFixture
         JwtSettingsMock.Setup(p => p.Value)
                        .Returns(new JwtSettings());
 
-        CacheServiceMock = new Mock<ICacheService<string, string>>();
+        var memoryCache = new MemoryCache(new MemoryCacheOptions());
+        
+        CacheService  = new MemoryCacheService<string, string>(memoryCache);
 
         TokenAuthController = new TokenAuthController(
             configuration: ConfigurationMock.Object, 
             userManager: UserManagerMock.Object, 
             jwtSettings: JwtSettingsMock.Object, 
-            cacheService: CacheServiceMock.Object);
+            cacheService: CacheService);
     }
 
     #endregion

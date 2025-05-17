@@ -7,7 +7,6 @@ using IdentityWebApp.Data;
 using IdentityWebApp.Tests.Fixtures;
 using IdentityWebApp.Tests.TestData.TokenAuthController;
 using Microsoft.AspNetCore.Mvc;
-using Moq;
 
 namespace IdentityWebApp.Tests.TokenAuthControllerTests;
 
@@ -83,23 +82,38 @@ public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
     public async Task ForExistedUserReturnSameTokenOnRepeatedRequest(string login, string password)
     {
         var userLogin = new UserLoginModel { Login = login, Password = password };
-        var expectedFirst = await _fixture.HttpClient.PostAsync<UserLoginModel, TokenModel>(_fixture.LoginMethodUrl, userLogin);
-        var expectedSecond = await _fixture.HttpClient.PostAsync<UserLoginModel, TokenModel>(_fixture.LoginMethodUrl, userLogin);
+        var user = new ApplicationUser { Id = Guid.NewGuid().ToString(), Email = userLogin.Login, UserName = userLogin.Login };
+
+        _fixture.UserManagerMock.Setup(p => p.FindByNameAsync(userLogin.Login))
+                                .Returns(Task.FromResult<ApplicationUser?>(user));
+
+        _fixture.UserManagerMock.Setup(p => p.CheckPasswordAsync(user, userLogin.Password))
+                                .Returns(Task.FromResult(true));
+
+        _fixture.UserManagerMock.Setup(p => p.GetRolesAsync(user))
+                                .Returns(Task.FromResult<IList<string>>([]));
+
+        var expectedFirst  = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
+        var expectedSecond  = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
 
         // Проверка, что первый токен не равен null
         expectedFirst.Should().NotBeNull();
-
+        var tokenModelFirst = expectedFirst.Value as TokenModel; 
+        tokenModelFirst.Should().NotBeNull();
+        
         // Проверка, что второй токен не равен null
         expectedSecond.Should().NotBeNull();
-
-        // Проверка, что значения токенов совпадают
-        expectedFirst.Value.Should().Be(expectedSecond.Value);
-
-        // Проверка, что время истечения токенов также совпадает
-        expectedFirst.Expires.Should().Be(expectedSecond.Expires);
+        var tokenModelSecond = expectedSecond.Value as TokenModel;
+        tokenModelSecond.Should().NotBeNull();
         
+        // Проверка, что значения токенов совпадают
+        tokenModelFirst.Value.Should().Be(tokenModelSecond.Value);
+        
+        // Проверка, что время истечения токенов также совпадает
+        tokenModelFirst.Expires.Should().Be(tokenModelSecond.Expires);
+    
         // Проверка, что время истечения первого токена больше текущего времени
-        expectedFirst.Expires.Should().BeAfter(DateTime.UtcNow);
+        tokenModelFirst.Expires.Should().BeAfter(DateTime.UtcNow);
                               
     }
 
