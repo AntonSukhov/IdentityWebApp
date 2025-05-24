@@ -4,6 +4,7 @@ using IdentityWebApp.Areas.Identity.Models;
 using IdentityWebApp.Common.Extensions;
 using IdentityWebApp.Controllers;
 using IdentityWebApp.Data;
+using IdentityWebApp.Other.Settings;
 using IdentityWebApp.Tests.Fixtures;
 using IdentityWebApp.Tests.TestData.TokenAuthController;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,8 @@ public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
         _fixture.UserManagerMock.Setup(p => p.GetRolesAsync(user))
                                 .Returns(Task.FromResult<IList<string>>([]));
 
+        _fixture.RefreshTokenAuthController();
+
 
         var expected = await _fixture.TokenAuthController.LoginAsync(userLogin);
 
@@ -93,6 +96,8 @@ public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
         _fixture.UserManagerMock.Setup(p => p.GetRolesAsync(user))
                                 .Returns(Task.FromResult<IList<string>>([]));
 
+        _fixture.RefreshTokenAuthController();
+
         var expectedFirst  = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
         var expectedSecond  = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
 
@@ -115,6 +120,61 @@ public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
         // Проверка, что время истечения первого токена больше текущего времени
         tokenModelFirst.Expires.Should().BeAfter(DateTime.UtcNow);
                               
+    }
+
+    /// <summary>
+    /// Тестирует метод аутентификации пользователя для существующего пользователя и малого времени жизни токена.
+    /// </summary>
+    /// <param name="login">Логин пользователя.</param>
+    /// <param name="password">Пароль пользователя для аутентификации.</param>
+    /// <param name="tokenLifeTime">Время жизни токена в секундах.</param>
+    /// <returns>Асинхронная задача, представляющая результат выполнения теста.</returns>
+    [Theory]
+    [ClassData(typeof(ExistedUserAndShortTokenLifetimeTestData))]
+    public async Task ForExistedUserAndShortTokenLifetime(string login, string password, int tokenLifeTime)
+    {
+        var userLogin = new UserLoginModel { Login = login, Password = password };
+        var user = new ApplicationUser { Id = Guid.NewGuid().ToString(), Email = userLogin.Login, UserName = userLogin.Login };
+        var millisecondsDelay = tokenLifeTime * 1000 + 1;
+
+        _fixture.JwtSettingsMock.Setup(p => p.Value)
+                                .Returns(new JwtSettings{ ExpiresInSeconds = tokenLifeTime });
+
+        _fixture.UserManagerMock.Setup(p => p.FindByNameAsync(userLogin.Login))
+                                .Returns(Task.FromResult<ApplicationUser?>(user));
+
+        _fixture.UserManagerMock.Setup(p => p.CheckPasswordAsync(user, userLogin.Password))
+                                .Returns(Task.FromResult(true));
+
+        _fixture.UserManagerMock.Setup(p => p.GetRolesAsync(user))
+                                .Returns(Task.FromResult<IList<string>>([]));
+
+        _fixture.RefreshTokenAuthController();
+
+        var expectedFirst = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
+
+        await Task.Delay(millisecondsDelay);
+
+        var expectedSecond = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
+        
+        // Проверка, что первый токен не равен null
+        expectedFirst.Should().NotBeNull();
+        var tokenModelFirst = expectedFirst.Value as TokenModel; 
+        tokenModelFirst.Should().NotBeNull();
+        
+        // Проверка, что второй токен не равен null
+        expectedSecond.Should().NotBeNull();
+        var tokenModelSecond = expectedSecond.Value as TokenModel;
+        tokenModelSecond.Should().NotBeNull();
+        
+        // Проверка, что значения токенов не совпадают
+        tokenModelFirst.Value.Should().NotBe(tokenModelSecond.Value);
+        
+        // Проверка, что время истечения токенов также не совпадает
+        tokenModelFirst.Expires.Should().NotBe(tokenModelSecond.Expires);
+    
+        // Проверка, что время истечения первого токена меньше текущего времени
+        tokenModelFirst.Expires.Should().BeBefore(DateTime.UtcNow);
     }
 
     /// <summary>
