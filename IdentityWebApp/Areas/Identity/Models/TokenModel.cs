@@ -19,7 +19,7 @@ public class TokenModel
     /// Получает или задаёт значение даты и время истечения действия токена.
     /// </summary>
     [JsonPropertyName("expires")]
-    public DateTime Expires { get; set; }
+    public DateTimeOffset Expires { get; set; }
 
     #endregion
 }

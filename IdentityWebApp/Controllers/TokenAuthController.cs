@@ -143,7 +143,7 @@ public class TokenAuthController : ControllerBase
         return new TokenModel
         {
             Value = tokenAsString,
-            Expires = token.ValidTo
+            Expires = new DateTimeOffset(token.ValidTo, TimeSpan.Zero)
         };
     }
 
