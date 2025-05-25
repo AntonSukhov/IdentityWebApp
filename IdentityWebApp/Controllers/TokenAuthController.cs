@@ -88,7 +88,7 @@ public class TokenAuthController : ControllerBase
     /// <returns>Кэшированный токен или null, если токен недоступен или истек.</returns>
     private TokenModel? GetCachedToken(string userId)
     {
-        if (_userTokenCacheService.TryGetValue(userId, out var cachedToken))
+        if (_userTokenCacheService.TryGetValue(userId, out var cachedToken) && cachedToken != null)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(cachedToken);
