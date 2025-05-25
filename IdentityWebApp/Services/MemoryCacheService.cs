@@ -23,7 +23,7 @@ public class MemoryCacheService<TKey, TValue> : ICacheService<TKey, TValue>
     /// <param name="memoryCache">Экземпляр кэша в памяти.</param>
     public MemoryCacheService(IMemoryCache memoryCache)
     {
-        ArgumentNullException.ThrowIfNull(memoryCache);
+        ArgumentNullException.ThrowIfNull(memoryCache, nameof(memoryCache));
 
         _memoryCache = memoryCache;
     }
@@ -34,19 +34,22 @@ public class MemoryCacheService<TKey, TValue> : ICacheService<TKey, TValue>
 
     /// <inheritdoc/>
     public void Set(TKey key, TValue value, DateTimeOffset absoluteExpiration)
-    {     
+    {
+        ArgumentNullException.ThrowIfNull(key, nameof(key));
         _memoryCache.Set(key, value, absoluteExpiration);
     }
 
     /// <inheritdoc/>
-    public bool TryGetValue(TKey key, out TValue value)
+    public bool TryGetValue(TKey key, out TValue? value)
     {
+        ArgumentNullException.ThrowIfNull(key, nameof(key));
         return _memoryCache.TryGetValue(key, out value);
     }
     
     /// <inheritdoc/>
     public void Remove(TKey key)
     {
+        ArgumentNullException.ThrowIfNull(key, nameof(key));
         _memoryCache.Remove(key);
     }
 

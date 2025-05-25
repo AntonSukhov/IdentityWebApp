@@ -23,7 +23,7 @@ public interface ICacheService<in TKey, TValue>
     /// <param name="key">Ключ для поиска значения.</param>
     /// <param name="value">Выходное значение, если оно найдено.</param>
     /// <returns>True, если значение найдено; иначе - false.</returns>
-    bool TryGetValue(TKey key, out TValue value);
+    bool TryGetValue(TKey key, out TValue? value);
 
     /// <summary>
     /// Удаляет значение из кэша по указанному ключу.
