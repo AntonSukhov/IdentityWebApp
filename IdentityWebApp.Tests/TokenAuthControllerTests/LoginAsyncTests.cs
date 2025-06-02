@@ -178,7 +178,7 @@ public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
     }
 
     /// <summary>
-    /// Тест проверки метода аутентификации пользователя для не существующего пользователя.
+    /// Тест проверки метода аутентификации пользователя для несуществующего пользователя.
     /// </summary>
     /// <param name="login">Логин пользователя.</param>
     /// <param name="password">Пароль пользователя для аутентификации.</param>
