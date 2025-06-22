@@ -98,11 +98,11 @@ namespace IdentityWebApp.Areas.Identity.Pages.Account
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Подтвердите свой адрес электронной почты",
-                        $"Пожалуйста, подтвердите свою учётную запись с помощью <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>нажав здесь</a>.");
-
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
+                         await _emailSender.SendEmailAsync(Input.Email, "Подтвердите свой адрес электронной почты",
+                        $"Пожалуйста, подтвердите свою учётную запись с помощью <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>нажав здесь</a>.");
+
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
                     }
                     else

@@ -5,6 +5,7 @@ using IdentityWebApp.Other.Settings;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using IdentityWebApp.Extensions;
+using Microsoft.AspNetCore.Identity;
 
 namespace IdentityWebApp;
 
@@ -63,14 +64,15 @@ public class Program
         builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
         {
 
-            options.SignIn.RequireConfirmedAccount = true;
+            options.SignIn.RequireConfirmedAccount = false;
             options.Password.RequiredLength = 8;
             options.Password.RequiredUniqueChars = 6;
             options.Lockout.MaxFailedAccessAttempts = 5;                      //Максимально допустимое количество неудачных попыток доступа
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); //Время блокировки пользователя по умолчанию.
             options.Lockout.AllowedForNewUsers = true;                        //Новый пользователь может быть заблокирован при неудачных попытках доступа.
         })
-        .AddEntityFrameworkStores<ApplicationDbContext>();
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders(); // Добавлено для поддержки токенов
 
         builder.Services.AddRazorPages();                                 
         builder.Services.AddControllers();
