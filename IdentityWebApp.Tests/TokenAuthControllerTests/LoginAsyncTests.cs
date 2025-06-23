@@ -1,7 +1,5 @@
-using System.Net;
 using FluentAssertions;
 using IdentityWebApp.Areas.Identity.Models;
-using IdentityWebApp.Common.Extensions;
 using IdentityWebApp.Controllers;
 using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
@@ -64,13 +62,13 @@ public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
         _fixture.RefreshTokenAuthController();
 
 
-        var expected = await _fixture.TokenAuthController.LoginAsync(userLogin);
+        var actual = await _fixture.TokenAuthController.LoginAsync(userLogin);
 
-        expected.Should().BeOfType<OkObjectResult>()
-                         .Which.Value.Should().BeOfType<TokenModel>()
-                                              .And.NotBeNull()
-                                              .And.Match<TokenModel>(p => !string.IsNullOrEmpty(p.Value) && 
-                                                                           p.Expires > DateTime.UtcNow);
+        actual.Should().BeOfType<OkObjectResult>()
+                       .Which.Value.Should().BeOfType<TokenModel>()
+                                            .And.NotBeNull()
+                                            .And.Match<TokenModel>(p => !string.IsNullOrEmpty(p.Value) && 
+                                                                   p.Expires > DateTime.UtcNow);
     }
 
     /// <summary>
@@ -98,17 +96,17 @@ public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
 
         _fixture.RefreshTokenAuthController();
 
-        var expectedFirst  = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
-        var expectedSecond  = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
+        var actualFirst  = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
+        var actualSecond  = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
 
         // Проверка, что первый токен не равен null
-        expectedFirst.Should().NotBeNull();
-        var tokenModelFirst = expectedFirst.Value as TokenModel; 
+        actualFirst.Should().NotBeNull();
+        var tokenModelFirst = actualFirst.Value as TokenModel; 
         tokenModelFirst.Should().NotBeNull();
         
         // Проверка, что второй токен не равен null
-        expectedSecond.Should().NotBeNull();
-        var tokenModelSecond = expectedSecond.Value as TokenModel;
+        actualSecond.Should().NotBeNull();
+        var tokenModelSecond = actualSecond.Value as TokenModel;
         tokenModelSecond.Should().NotBeNull();
         
         // Проверка, что значения токенов совпадают
@@ -151,20 +149,20 @@ public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
 
         _fixture.RefreshTokenAuthController();
 
-        var expectedFirst = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
+        var actualFirst = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
 
         await Task.Delay(millisecondsDelay);
 
-        var expectedSecond = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
+        var actualSecond = (await _fixture.TokenAuthController.LoginAsync(userLogin)) as OkObjectResult;
         
         // Проверка, что первый токен не равен null
-        expectedFirst.Should().NotBeNull();
-        var tokenModelFirst = expectedFirst.Value as TokenModel; 
+        actualFirst.Should().NotBeNull();
+        var tokenModelFirst = actualFirst.Value as TokenModel; 
         tokenModelFirst.Should().NotBeNull();
         
         // Проверка, что второй токен не равен null
-        expectedSecond.Should().NotBeNull();
-        var tokenModelSecond = expectedSecond.Value as TokenModel;
+        actualSecond.Should().NotBeNull();
+        var tokenModelSecond = actualSecond.Value as TokenModel;
         tokenModelSecond.Should().NotBeNull();
         
         // Проверка, что значения токенов не совпадают
@@ -187,15 +185,25 @@ public class LoginAsyncTests: IClassFixture<TokenAuthControllerFixture>
     [ClassData(typeof(NonExistedUserTestData))]
     public async Task ForNotExistedUser(string login, string password)
     {
-        var userLogin = new UserLoginModel { Login = login, Password = password };
+        var userLogin = new UserLoginModel { Login = login, Password = password};
+        var user = new ApplicationUser { Id = Guid.NewGuid().ToString(), Email = userLogin.Login, UserName = userLogin.Login };
 
-        var expected = await Assert.ThrowsAsync<HttpRequestException>
-        (
-            async () => await _fixture.HttpClient.PostAsync<UserLoginModel, TokenModel>(_fixture.LoginMethodUrl, userLogin)
-        );
+        _fixture.UserManagerMock.Setup(p => p.FindByNameAsync(userLogin.Login))
+                                .Returns(Task.FromResult<ApplicationUser?>(null));
 
-        expected.Should().NotBeNull()
-                         .And.Match<HttpRequestException>(p => p.StatusCode == HttpStatusCode.Unauthorized);
+        _fixture.UserManagerMock.Setup(p => p.CheckPasswordAsync(user, userLogin.Password))
+                                .Returns(Task.FromResult(false));
+
+        _fixture.UserManagerMock.Setup(p => p.GetRolesAsync(user))
+                                .Returns(Task.FromResult<IList<string>>([]));
+
+        _fixture.RefreshTokenAuthController();
+
+
+        var actual = await _fixture.TokenAuthController.LoginAsync(userLogin);
+
+        actual.Should().NotBeNull()
+                       .And.BeOfType<UnauthorizedResult>();
                         
     }
 

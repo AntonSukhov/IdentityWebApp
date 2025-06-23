@@ -1,4 +1,3 @@
-using IdentityWebApp.Common.Services;
 using IdentityWebApp.Controllers;
 using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
@@ -17,16 +16,6 @@ namespace IdentityWebApp.Tests.Fixtures;
 public class TokenAuthControllerFixture
 {
     #region Свойства
-
-    /// <summary>
-    /// Получает Http-клиент.
-    /// </summary>
-    public HttpClient HttpClient { get; }
-
-    /// <summary>
-    /// Получает URL метода аутентификации пользователя системы.
-    /// </summary>
-    public string LoginMethodUrl { get; }
 
     /// <summary>
     /// Получает контроллер аутентификации пользователя системы.
@@ -50,9 +39,6 @@ public class TokenAuthControllerFixture
 
     public TokenAuthControllerFixture()
     {
-        HttpClient = HttpClientService.CreateHttpClient();
-        LoginMethodUrl = "http://localhost:5062/api/token-auth/login"; //TODO: как-то избавиться от константы.
-
         ConfigurationMock = new Mock<IConfiguration>();
         ConfigurationMock.Setup(c => c[ConstantsService.ApiKeySectionName])
                          .Returns(CryptographyService.GenerateSecureKey());
@@ -69,24 +55,26 @@ public class TokenAuthControllerFixture
 
         CacheService = new MemoryCacheService<string, string>(memoryCache);
 
-        RefreshTokenAuthController();
+        TokenAuthController = RefreshTokenAuthController();
     }
 
 
     #endregion
 
     #region Методы
-    
+
     /// <summary>
     /// Актуализирует экземпляр контроллера аутентификации токенов.
     /// </summary>
-    public void RefreshTokenAuthController()
+    public TokenAuthController RefreshTokenAuthController()
     {
         TokenAuthController = new TokenAuthController(
             configuration: ConfigurationMock.Object,
             userManager: UserManagerMock.Object,
             jwtSettings: JwtSettingsMock.Object,
             cacheService: CacheService);
+
+        return TokenAuthController;
     }
 
     #endregion
