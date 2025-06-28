@@ -1,0 +1,13 @@
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/bin/Debug/net9.0/IdentityWebApp.Common.deps.json
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/bin/Debug/net9.0/IdentityWebApp.Common.dll
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/bin/Debug/net9.0/IdentityWebApp.Common.pdb
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/IdentityWebApp.Common.csproj.AssemblyReference.cache
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/IdentityWebApp.Common.GeneratedMSBuildEditorConfig.editorconfig
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/IdentityWebApp.Common.AssemblyInfoInputs.cache
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/IdentityWebApp.Common.AssemblyInfo.cs
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/IdentityWebApp.Common.csproj.CoreCompileInputs.cache
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/IdentityWebApp.Common.sourcelink.json
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/IdentityWebApp.Common.dll
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/refint/IdentityWebApp.Common.dll
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/IdentityWebApp.Common.pdb
+/home/anton/GitRepository/IdentityWebApp/IdentityWebApp.Common/obj/Debug/net9.0/ref/IdentityWebApp.Common.dll
