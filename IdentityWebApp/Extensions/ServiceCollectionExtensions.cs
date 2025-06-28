@@ -1,5 +1,5 @@
-using IdentityWebApp.Services;
 using IdentityWebApp.Services.Senders;
+using Infrastructure.Caching.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace IdentityWebApp.Extensions;
