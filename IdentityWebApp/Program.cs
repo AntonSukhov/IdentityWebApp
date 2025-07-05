@@ -100,7 +100,7 @@ public class Program
         builder.Services.AddAuthentication()
                         .AddJwtBearer(options => 
         {
-            var apiKey = builder.Configuration[ConstantsService.ApiKeySectionName] ?? string.Empty;
+            var apiKey = builder.Configuration[ConstantsService.JwtKeySectionName] ?? string.Empty;
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKey));
 
             options.SaveToken = true;                       //Токен будет сохранен в AuthenticationProperties

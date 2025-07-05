@@ -6,6 +6,7 @@ using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
 using IdentityWebApp.Services;
 using Infrastructure.Caching.Services;
+using Infrastructure.Security.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -63,11 +64,19 @@ public class TokenAuthController : ControllerBase
 
         var user = await _userManager.FindByNameAsync(model.Login);
 
-        if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
+        if (user == null)
         {
             return Unauthorized();
         }
 
+        var key = _configuration[ConstantsService.SKeySectionName] ?? string.Empty;
+        var password = CryptographyService.Decrypt(model.Password, key);
+
+        if (!await _userManager.CheckPasswordAsync(user, password))
+        {
+            return Unauthorized();
+        }
+        
         var cachedToken = GetCachedToken(user.Id);
 
         if (cachedToken != null)
@@ -125,7 +134,7 @@ public class TokenAuthController : ControllerBase
 
         authClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-        var apiKey = _configuration[ConstantsService.ApiKeySectionName] ?? string.Empty;
+        var apiKey = _configuration[ConstantsService.JwtKeySectionName] ?? string.Empty;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKey));
 
         var tokenDescriptor = new SecurityTokenDescriptor

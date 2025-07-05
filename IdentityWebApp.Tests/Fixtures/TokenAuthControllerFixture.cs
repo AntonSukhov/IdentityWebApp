@@ -41,9 +41,13 @@ public class TokenAuthControllerFixture
 
     public TokenAuthControllerFixture()
     {
+        var secretKey = "ZWbw+SVetnbgtsBvc5p6POkDHSWsgO+bN0qtWjnXBbE=";
+
         ConfigurationMock = new Mock<IConfiguration>();
-        ConfigurationMock.Setup(c => c[ConstantsService.ApiKeySectionName])
+        ConfigurationMock.Setup(c => c[ConstantsService.JwtKeySectionName])
                          .Returns(CryptographyService.GenerateSecureKey());
+        ConfigurationMock.Setup(c => c[ConstantsService.SKeySectionName])
+                         .Returns(secretKey);
 
         var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
         UserManagerMock = new Mock<UserManager<ApplicationUser>>(userStoreMock.Object, null, null, null, null, null, null,

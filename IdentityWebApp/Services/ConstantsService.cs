@@ -11,7 +11,8 @@ public static class ConstantsService
     public const string SmtpSettingsSectionName = "SmtpSettings";
     public const string JwtSettingsSectionName = "JwtSettings";
     public const string DefaultCookieName = "IdentityWebAppCookie";
-    public const string ApiKeySectionName = "JWT:ServiceApiKey";
+    public const string JwtKeySectionName = "JWT:ServiceApiKey";
+    public const string SKeySectionName = "SK:ServiceApiKey";
     public const string KeySizeOutOfRangeErrorMessage = "Размер ключа должен быть положительным.";
 
     #endregion

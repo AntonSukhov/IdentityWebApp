@@ -7,6 +7,6 @@ public class ExistedUserTestData : TheoryData<string, string>
 {
     public ExistedUserTestData()
     {
-        Add("my_test_email@mail.ru", "my_test_password_1345");
+        Add("my_test_email@mail.ru", "arkznDPAeHXqx8TNL4dZqbXUJl4L66LLL2+SXSgfuNM=");
     }
 }
