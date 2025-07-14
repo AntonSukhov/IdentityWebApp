@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityWebApp.Api", "Ident
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityWebApp.Tests", "IdentityWebApp.Tests\IdentityWebApp.Tests.csproj", "{BC358F87-F842-2D56-5878-F1F27F8B6AC7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityWebApp.Api.Tests", "IdentityWebApp.Api.Tests\IdentityWebApp.Api.Tests.csproj", "{91941355-F861-4A41-8A72-4F35673A2408}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{BC358F87-F842-2D56-5878-F1F27F8B6AC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC358F87-F842-2D56-5878-F1F27F8B6AC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC358F87-F842-2D56-5878-F1F27F8B6AC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91941355-F861-4A41-8A72-4F35673A2408}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91941355-F861-4A41-8A72-4F35673A2408}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91941355-F861-4A41-8A72-4F35673A2408}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91941355-F861-4A41-8A72-4F35673A2408}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
