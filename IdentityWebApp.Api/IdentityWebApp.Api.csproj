@@ -3,8 +3,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>203e039b-db1a-4ce8-ab82-caf889ca4c6d</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Infrastructure.Networks" Version="1.0.0" />
+    <PackageReference Include="Infrastructure.Networks" Version="1.0.1" />
+    <PackageReference Include="Infrastructure.Security" Version="1.0.1" />
   </ItemGroup>
 </Project>

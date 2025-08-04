@@ -2,6 +2,8 @@ using System.Text.Json;
 using IdentityWebApp.Api.Models;
 using Infrastructure.Networks.Extensions;
 using Infrastructure.Networks.Services;
+using Infrastructure.Security.Services;
+using Infrastructure.Shared.Helpers;
 
 namespace IdentityWebApp.Api.Services;
 
@@ -12,7 +14,7 @@ public class AuthenticationService
 {
     #region Поля
 
-    private readonly string _tokenAuthPath; 
+    private readonly string _tokenAuthPath;
     private readonly HttpClient _httpClient;
 
     #endregion
@@ -20,12 +22,20 @@ public class AuthenticationService
     #region Конструкторы
 
     /// <summary>
-    /// Конструктор сервиса аутентификации.
+    /// Конструктор сервиса аутентификации по умолчанию.
     /// </summary>
-    public AuthenticationService()
+    public AuthenticationService() : this(HttpClientService.CreateDefaultHttpClient())
     {
+    }
+    /// <summary>
+    /// Параметризованный конструктор сервиса аутентификации с заданным HttpClient.
+    /// </summary>
+    /// <param name="httpClient">Клиент для работы с API.</param>
+    public AuthenticationService(HttpClient httpClient)
+    {
+        ArgumentNullException.ThrowIfNull(httpClient);
+        _httpClient = httpClient; 
         _tokenAuthPath = "/api/token-auth";
-        _httpClient = HttpClientService.CreateDefaultHttpClient(); 
     }
 
     #endregion
@@ -48,16 +58,13 @@ public class AuthenticationService
         ArgumentException.ThrowIfNullOrWhiteSpace(userName);
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
 
-        var userModel = new UserModel { Login = userName, Password = password };
+        var userSecretsId = Helpers.ConfigurationHelper.GetUserSecretsId();
+        var secret = GetSecret(userSecretsId);
 
-        var baseAddress = $"http://{serverName}";
+        var passwordEncrypt = CryptographyService.Encrypt(password, secret);
+        var userModel = new UserModel { Login = userName, Password = passwordEncrypt };
 
-        if (port.HasValue)
-        {
-            baseAddress += $":{port.Value}";
-        }
-
-        baseAddress += _tokenAuthPath;
+        var baseAddress = GetBaseAddress(serverName, port);
 
         _httpClient.BaseAddress = new Uri(baseAddress);
 
@@ -66,12 +73,50 @@ public class AuthenticationService
             var response = await _httpClient.PostAsync<UserModel, TokenModel>(baseAddress, userModel, JsonSerializerOptions.Default)
                 ?? throw new HttpRequestException("Не удалось получить ответ от сервера.");
 
-            return response; 
+            return response;
         }
         catch (HttpRequestException ex)
         {
             throw new HttpRequestException("Ошибка при выполнении запроса аутентификации.", ex);
         }
+    }
+
+    /// <summary>
+    /// Получает секретный ключ для аутентификации.
+    /// </summary>
+    /// <param name="userSecretsId">Идентификатор пользовательских секретов.</param>
+    /// <returns>Секретный ключ.</returns>
+    /// <exception cref="HttpRequestException">Выбрасывается, если не удалось получить секрет.</exception>
+    private static string GetSecret(string? userSecretsId)
+    {
+        if (string.IsNullOrWhiteSpace(userSecretsId))
+            throw new HttpRequestException("Не удалось получить идентификатор пользовательских секретов.");
+
+        var secret = ConfigurationHelper.GetSecret("SK:ServiceApiKey", userSecretsId);
+
+        if (string.IsNullOrWhiteSpace(secret))
+            throw new HttpRequestException("Не удалось получить пользовательский секрет.");
+
+        return secret;
+    }
+
+    /// <summary>
+    /// Получает базовый адрес для API.
+    /// </summary>
+    /// <param name="serverName">Имя сервера.</param>
+    /// <param name="port">Порт сервера (может быть null).</param>
+    /// <returns>Строка с базовым адресом.</returns>
+    private string GetBaseAddress(string serverName, int? port)
+    {
+        var uriBuilder = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttp,
+            Host = serverName,
+            Port = port ?? 80,
+            Path = $"{_tokenAuthPath}/login"
+        };
+
+        return uriBuilder.ToString();
     }
 
     #endregion
