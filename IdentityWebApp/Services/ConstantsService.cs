@@ -5,8 +5,6 @@ namespace IdentityWebApp.Services;
 /// </summary>
 public static class ConstantsService
 {
-    #region Константы
-
     public const string DefaultConnectionSectionName = "DefaultConnection";
     public const string SmtpSettingsSectionName = "SmtpSettings";
     public const string JwtSettingsSectionName = "JwtSettings";
@@ -14,10 +12,6 @@ public static class ConstantsService
     public const string JwtKeySectionName = "JWT:ServiceApiKey";
     public const string SKeySectionName = "SK:ServiceApiKey";
     public const string KeySizeOutOfRangeErrorMessage = "Размер ключа должен быть положительным.";
-
-    #endregion
-
-    #region Методы
 
     /// <summary>
     /// Генерирует сообщение об ошибке, указывающее, что указанная секция не найдена.
@@ -28,6 +22,4 @@ public static class ConstantsService
     {
         return $"Секция '{sectionName}' не найдена.";
     }
-
-    #endregion
 }

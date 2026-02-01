@@ -21,16 +21,10 @@ namespace IdentityWebApp.Controllers;
 [Route("api/token-auth")]
 public class TokenAuthController : ControllerBase
 {
-    #region Поля
-    
     private readonly IConfiguration _configuration;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly JwtSettings _jwtSettings;
     private readonly ICacheService<string, string> _userTokenCacheService;
-
-    #endregion
-
-    #region Конструкторы
 
     /// <summary>
     /// Конструктор по умолчанию.
@@ -47,10 +41,6 @@ public class TokenAuthController : ControllerBase
         _jwtSettings = jwtSettings.Value;
         _userTokenCacheService = cacheService;
     }
-
-    #endregion
-
-    #region Методы
 
     /// <summary>
     /// Аутентификация пользователя с использованием предоставленных учетных данных.
@@ -88,8 +78,6 @@ public class TokenAuthController : ControllerBase
 
         return Ok(token);
     }
-
-    #region Закрытые методы
 
     /// <summary>
     /// Получение кэшированного токена для пользователя.
@@ -156,8 +144,4 @@ public class TokenAuthController : ControllerBase
             Expires = new DateTimeOffset(token.ValidTo, TimeSpan.Zero)
         };
     }
-
-    #endregion
-
-    #endregion
 }

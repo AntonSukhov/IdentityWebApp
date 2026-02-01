@@ -5,8 +5,6 @@ namespace IdentityWebApp.Api.Models;
 /// </summary>
 public class UserModel
 {
-    #region Свойства
-
     /// <summary>
     /// Получает или задаёт логин пользователя для аутентификации.
     /// </summary>
@@ -15,6 +13,4 @@ public class UserModel
     /// Получает или задаёт пароль пользователя для аутентификации.
     /// </summary>
     public required string Password { get; set; }
-
-    #endregion
 }

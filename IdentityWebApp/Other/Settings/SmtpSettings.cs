@@ -7,8 +7,6 @@ namespace IdentityWebApp.Other.Settings;
 /// </summary>
 public class SmtpSettings
 {
-    #region Свойства
-
     /// <summary>
     /// Получает или задаёт значение хоста.
     /// </summary>
@@ -34,6 +32,4 @@ public class SmtpSettings
     /// учётные данные текущего вошедшего пользователя при выполнении запросов.
     /// </summary>
     public bool UseDefaultCredentials { get; set; }
-
-    #endregion
 }

@@ -7,8 +7,6 @@ namespace IdentityWebApp.Api.Helpers;
 /// </summary>
 public static class ConfigurationHelper
 {
-    #region Методы
-
     /// <summary>
     /// Получает идентификатор пользовательских секретов из файла проекта.
     /// </summary>
@@ -64,6 +62,4 @@ public static class ConfigurationHelper
 
         return null;
     }
-
-    #endregion
 }

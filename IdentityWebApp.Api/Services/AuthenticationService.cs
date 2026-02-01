@@ -12,35 +12,24 @@ namespace IdentityWebApp.Api.Services;
 /// </summary>
 public class AuthenticationService
 {
-    #region Поля
 
-    private readonly string _tokenAuthPath;
     private readonly HttpClient _httpClient;
 
-    #endregion
-
-    #region Конструкторы
-
     /// <summary>
-    /// Конструктор сервиса аутентификации по умолчанию.
+    /// Инициализирует экземпляр <see cref="AuthenticationService"/>.
     /// </summary>
-    public AuthenticationService() : this(HttpClientService.CreateDefaultHttpClient())
-    {
-    }
+    public AuthenticationService() : this(HttpClientService.CreateDefaultHttpClient()) {}
+
     /// <summary>
-    /// Параметризованный конструктор сервиса аутентификации с заданным HttpClient.
+    /// Инициализирует экземпляр <see cref="AuthenticationService"/>.
     /// </summary>
     /// <param name="httpClient">Клиент для работы с API.</param>
     public AuthenticationService(HttpClient httpClient)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
+
         _httpClient = httpClient; 
-        _tokenAuthPath = "/api/token-auth";
     }
-
-    #endregion
-
-    #region Методы
 
     /// <summary>
     /// Выполняет аутентификацию пользователя.
@@ -64,13 +53,13 @@ public class AuthenticationService
         var passwordEncrypt = CryptographyService.Encrypt(password, secret);
         var userModel = new UserModel { Login = userName, Password = passwordEncrypt };
 
-        var baseAddress = GetBaseAddress(serverName, port);
-
+        var baseAddress = GetBaseUri(serverName, port);
         _httpClient.BaseAddress = new Uri(baseAddress);
 
         try
         {
-            var response = await _httpClient.PostAsync<UserModel, TokenModel>(baseAddress, userModel, JsonSerializerOptions.Default)
+            var response = await _httpClient.PostAsync<UserModel, TokenModel>(ConstantsService.LoginUrl, userModel,
+                JsonSerializerOptions.Default)
                 ?? throw new HttpRequestException("Не удалось получить ответ от сервера.");
 
             return response;
@@ -106,18 +95,15 @@ public class AuthenticationService
     /// <param name="serverName">Имя сервера.</param>
     /// <param name="port">Порт сервера (может быть null).</param>
     /// <returns>Строка с базовым адресом.</returns>
-    private string GetBaseAddress(string serverName, int? port)
+    private string GetBaseUri(string serverName, int? port)
     {
         var uriBuilder = new UriBuilder
         {
             Scheme = Uri.UriSchemeHttp,
             Host = serverName,
-            Port = port ?? 80,
-            Path = $"{_tokenAuthPath}/login"
+            Port = port ?? 80
         };
 
         return uriBuilder.ToString();
     }
-
-    #endregion
 }

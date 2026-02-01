@@ -5,8 +5,6 @@ namespace IdentityWebApp.Areas.Identity.Models;
 /// </summary>
 public class UserLoginModel
 {
-    #region Свойства
-
     /// <summary>
     /// Получает или задаёт логин пользователя для аутентификации.
     /// </summary>
@@ -16,5 +14,4 @@ public class UserLoginModel
     /// </summary>
     public required string Password { get; set; }
 
-    #endregion
 }

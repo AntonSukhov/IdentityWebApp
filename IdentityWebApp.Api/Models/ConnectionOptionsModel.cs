@@ -5,8 +5,6 @@ namespace IdentityWebApp.Api.Models;
 /// </summary>
 public class ConnectionOptionsModel
 {
-    #region Свойства
-
     /// <summary>
     /// Получает или задаёт имя сервера, к которому будет осуществляться подключение.
     /// </summary>
@@ -26,6 +24,4 @@ public class ConnectionOptionsModel
     /// Пароль пользователя для аутентификации.
     /// </summary>
     public required string Password { get; set; }
-
-    #endregion
 }

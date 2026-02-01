@@ -7,8 +7,6 @@ namespace IdentityWebApp.Api.Models;
 /// </summary>
 public class TokenModel
 {
-    #region Свойства
-
     /// <summary>
     /// Получает или задаёт значение токена.
     /// </summary>
@@ -20,6 +18,4 @@ public class TokenModel
     /// </summary>
     [JsonPropertyName("expires")]
     public DateTimeOffset Expires { get; set; }
-
-    #endregion
 }

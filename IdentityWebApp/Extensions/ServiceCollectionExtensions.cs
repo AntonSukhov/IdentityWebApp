@@ -9,8 +9,6 @@ namespace IdentityWebApp.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    #region Методы
-
     /// <summary>
     /// Регистрация сервисов в коллекцию сервисов.
     /// </summary>
@@ -21,5 +19,4 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IEmailSender, SmtpEmailSender>();
     }
 
-    #endregion
 }

@@ -7,8 +7,6 @@ namespace IdentityWebApp.Areas.Identity.Models;
 /// </summary>
 public class UserIndexModel
 {
-    #region Свойства
-
     /// <summary>
     /// Получает или задаёт имя пользователя системы.
     /// </summary>
@@ -22,5 +20,4 @@ public class UserIndexModel
     [Display(Name = "Номер телефона")]
     public string? PhoneNumber { get; set; }
 
-     #endregion
 }
