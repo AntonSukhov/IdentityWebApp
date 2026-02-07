@@ -4,6 +4,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>203e039b-db1a-4ce8-ab82-caf889ca4c6d</UserSecretsId>
+    <PackageId>IdentityWebApp.Api</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Sukhov A.A.</Authors>
+    <Description>The package simplifies the implementation of secure user authentication in web applications by handling HTTP requests, token management, and encryption. 
+        It offers a clean and intuitive interface for interacting with authentication endpoints, abstracting away the complexity of low-level implementation details. 
+        The package includes built-in support for secure communication and centralized error handling, making it easy to integrate authentication functionality into your .NET projects.
+        In the future, it is planned to add additional general-purpose classes and interfaces to enhance functionality.</Description>
+    <PackageTags>uthentication;token;api;identity;.net;rest;security;client;http</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/AntonSukhov/IdentityWebApp.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/AntonSukhov/IdentityWebApp</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>© 2026 Sukhov A.A. All rights reserved.</Copyright>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Infrastructure.Networks" Version="1.0.1" />
