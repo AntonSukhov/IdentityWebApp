@@ -95,7 +95,7 @@ public class AuthenticationService
     /// <param name="serverName">Имя сервера.</param>
     /// <param name="port">Порт сервера (может быть null).</param>
     /// <returns>Строка с базовым адресом.</returns>
-    private string GetBaseUri(string serverName, int? port)
+    private static string GetBaseUri(string serverName, int? port)
     {
         var uriBuilder = new UriBuilder
         {
