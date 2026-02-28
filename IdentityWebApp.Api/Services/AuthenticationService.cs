@@ -1,9 +1,7 @@
+using System.Net.Http.Json;
 using System.Text.Json;
 using IdentityWebApp.Api.Models;
-using Infrastructure.Networks.Extensions;
 using Infrastructure.Networks.Services;
-using Infrastructure.Security.Services;
-using Infrastructure.Shared.Helpers;
 
 namespace IdentityWebApp.Api.Services;
 
@@ -12,7 +10,6 @@ namespace IdentityWebApp.Api.Services;
 /// </summary>
 public class AuthenticationService
 {
-
     private readonly HttpClient _httpClient;
 
     /// <summary>
@@ -29,79 +26,104 @@ public class AuthenticationService
         ArgumentNullException.ThrowIfNull(httpClient);
 
         _httpClient = httpClient; 
+        _httpClient.Timeout = TimeSpan.FromSeconds(
+            ConstantsService.DefaultHttpClientTimeoutSeconds);
     }
 
     /// <summary>
     /// Выполняет аутентификацию пользователя.
     /// </summary>
     /// <param name="serverName">Имя сервера.</param>
-    /// <param name="port">Порт сервера (может быть null).</param>
+    /// <param name="port">Порт сервера (может быть <c>null</c>).</param>
     /// <param name="userName">Имя пользователя.</param>
     /// <param name="password">Пароль пользователя.</param>
+    /// <param name="useHttps">Использовать протокол Https. По умолчанию <c>true</c>.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Модель токена.</returns>
-    /// <exception cref="ArgumentException">Выбрасывается, если входные параметры некорректны.</exception>
-    /// <exception cref="HttpRequestException">Выбрасывается, если произошла ошибка при выполнении запроса.</exception>
-    public async Task<TokenModel> LoginAsync(string serverName, int? port, string userName, string password)
+    public async Task<TokenModel> LoginAsync(
+        string serverName, 
+        int? port, 
+        string userName, 
+        string password,
+        bool useHttps = true, 
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(serverName);
         ArgumentException.ThrowIfNullOrWhiteSpace(userName);
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
 
-        var userSecretsId = Helpers.ConfigurationHelper.GetUserSecretsId();
-        var secret = GetSecret(userSecretsId);
-
-        var passwordEncrypt = CryptographyService.Encrypt(password, secret);
-        var userModel = new UserModel { Login = userName, Password = passwordEncrypt };
+        var userModel = new UserModel { Login = userName, Password = password };
 
         var baseAddress = GetBaseUri(serverName, port);
         _httpClient.BaseAddress = new Uri(baseAddress);
 
         try
         {
-            var response = await _httpClient.PostAsync<UserModel, TokenModel>(ConstantsService.LoginUrl, userModel,
-                JsonSerializerOptions.Default)
-                ?? throw new HttpRequestException("Не удалось получить ответ от сервера.");
+            var response = await _httpClient.PostAsJsonAsync(
+                ConstantsService.LoginUri,
+                userModel,
+                JsonSerializerOptions.Default,
+                cancellationToken);
+                
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    throw new InvalidOperationException(ConstantsService.ErrorInvalidCredentials);
+                
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            return response;
+                throw new HttpRequestException(
+                    string.Format(ConstantsService.ErrorServerError, response.StatusCode, errorContent));
+            
+            }
+
+            var token = await response.Content.ReadFromJsonAsync<TokenModel>(cancellationToken) 
+                ?? throw new JsonException(ConstantsService.ErrorTokenDeserializationFailed);
+
+            return token;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(
+                ConstantsService.ErrorAuthenticationCancelled, cancellationToken);
         }
         catch (HttpRequestException ex)
         {
-            throw new HttpRequestException("Ошибка при выполнении запроса аутентификации.", ex);
+            throw new IOException(ConstantsService.ErrorConnectionFailed, ex);
         }
-    }
-
-    /// <summary>
-    /// Получает секретный ключ для аутентификации.
-    /// </summary>
-    /// <param name="userSecretsId">Идентификатор пользовательских секретов.</param>
-    /// <returns>Секретный ключ.</returns>
-    /// <exception cref="HttpRequestException">Выбрасывается, если не удалось получить секрет.</exception>
-    private static string GetSecret(string? userSecretsId)
-    {
-        if (string.IsNullOrWhiteSpace(userSecretsId))
-            throw new HttpRequestException("Не удалось получить идентификатор пользовательских секретов.");
-
-        var secret = ConfigurationHelper.GetSecret("SK:ServiceApiKey", userSecretsId);
-
-        if (string.IsNullOrWhiteSpace(secret))
-            throw new HttpRequestException("Не удалось получить пользовательский секрет.");
-
-        return secret;
+        catch (UriFormatException ex)
+        {
+            throw new InvalidOperationException(ConstantsService.ErrorInvalidServerAddress, ex);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                ConstantsService.ErrorUnexpectedAuthenticationError, ex);
+        }
     }
 
     /// <summary>
     /// Получает базовый адрес для API.
     /// </summary>
     /// <param name="serverName">Имя сервера.</param>
-    /// <param name="port">Порт сервера (может быть null).</param>
+    /// <param name="port">Порт сервера (может быть <c>null</c>).</param>
+    /// <param name="useHttps">Использовать протокол Https. По умолчанию <c>true</c>.</param>
     /// <returns>Строка с базовым адресом.</returns>
-    private static string GetBaseUri(string serverName, int? port)
+    private static string GetBaseUri(string serverName, int? port, bool useHttps = true)
     {
+        var scheme = useHttps
+            ? ConstantsService.HttpsApiScheme 
+            : ConstantsService.HttpApiScheme;
+            
+        var defaultPort = useHttps
+            ? ConstantsService.DefaultHttpsPort
+            : ConstantsService.DefaultHttpPort;
+
         var uriBuilder = new UriBuilder
         {
-            Scheme = Uri.UriSchemeHttp,
+            Scheme = scheme ,
             Host = serverName,
-            Port = port ?? 80
+            Port = port ?? defaultPort
         };
 
         return uriBuilder.ToString();

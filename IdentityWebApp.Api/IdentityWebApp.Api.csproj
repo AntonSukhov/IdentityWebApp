@@ -3,9 +3,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UserSecretsId>203e039b-db1a-4ce8-ab82-caf889ca4c6d</UserSecretsId>
     <PackageId>IdentityWebApp.Api</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Sukhov A.A.</Authors>
     <Description>The package simplifies the implementation of secure user authentication in web applications by handling HTTP requests, token management, and encryption. 
         It offers a clean and intuitive interface for interacting with authentication endpoints, abstracting away the complexity of low-level implementation details. 
@@ -21,6 +20,5 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Infrastructure.Networks" Version="1.0.1" />
-    <PackageReference Include="Infrastructure.Security" Version="1.0.1" />
   </ItemGroup>
 </Project>

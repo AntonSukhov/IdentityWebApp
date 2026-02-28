@@ -16,9 +16,9 @@ Example:
 
     // Perform login
     TokenModel loginResult = await service.LoginAsync(
-        host: "api.example.com",
+        serverName: "api.example.com",
         port: 443,
-        username: "user@example.com",
+        userName: "user@example.com",
         password: "securepassword"
     );
 
