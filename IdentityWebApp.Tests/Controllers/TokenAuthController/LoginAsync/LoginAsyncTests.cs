@@ -217,13 +217,10 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
                                 .Returns(Task.FromResult<IList<string>>([]));
 
         // Act & Assert: 
-        var exception = await Assert.ThrowsAnyAsync<Exception>(
-            async () => await _fixture.TokenAuthController.LoginAsync(testCase.InputData)
-        );
+        var result =  await _fixture.TokenAuthController.LoginAsync(testCase.InputData);
 
-        // Проверяем, что исключение относится к разрешённым типам
         Assert.True(
-            exception is ArgumentException
+            result is UnauthorizedResult
         );
     }
 }
