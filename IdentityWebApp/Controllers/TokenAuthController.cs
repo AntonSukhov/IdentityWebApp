@@ -6,7 +6,6 @@ using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
 using IdentityWebApp.Services;
 using Infrastructure.Caching.Services;
-using Infrastructure.Security.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -33,8 +32,11 @@ public class TokenAuthController : ControllerBase
     /// <param name="userManager">Объект управления пользователями.</param>
     /// <param name="jwtSettings">Настройки JWT-токена.</param>
     /// <param name="cacheService">Сервис работы с кэшем.</param>
-    public TokenAuthController(IConfiguration configuration, UserManager<ApplicationUser> userManager, 
-        IOptions<JwtSettings> jwtSettings, ICacheService<string, string> cacheService)
+    public TokenAuthController(
+        IConfiguration configuration, 
+        UserManager<ApplicationUser> userManager, 
+        IOptions<JwtSettings> jwtSettings, 
+        ICacheService<string, string> cacheService)
     {
         _configuration = configuration;
         _userManager = userManager;
@@ -59,10 +61,7 @@ public class TokenAuthController : ControllerBase
             return Unauthorized();
         }
 
-        var key = _configuration[ConstantsService.SKeySectionName] ?? string.Empty;
-        var password = CryptographyService.Decrypt(model.Password, key);
-
-        if (!await _userManager.CheckPasswordAsync(user, password))
+        if (!await _userManager.CheckPasswordAsync(user, model.Password))
         {
             return Unauthorized();
         }
@@ -83,7 +82,7 @@ public class TokenAuthController : ControllerBase
     /// Получение кэшированного токена для пользователя.
     /// </summary>
     /// <param name="userId">Идентификатор пользователя.</param>
-    /// <returns>Кэшированный токен или null, если токен недоступен или истек.</returns>
+    /// <returns>Кэшированный токен или <c>null</c>, если токен недоступен или истек.</returns>
     private TokenModel? GetCachedToken(string userId)
     {
         if (_userTokenCacheService.TryGetValue(userId, out var cachedToken) && cachedToken != null)
