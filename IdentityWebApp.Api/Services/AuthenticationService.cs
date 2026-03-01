@@ -54,7 +54,7 @@ public class AuthenticationService
 
         var userModel = new UserModel { Login = userName, Password = password };
 
-        var baseAddress = GetBaseUri(serverName, port);
+        var baseAddress = GetBaseUri(serverName, port, useHttps);
         _httpClient.BaseAddress = new Uri(baseAddress);
 
         try
