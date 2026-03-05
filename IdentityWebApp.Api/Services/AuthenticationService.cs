@@ -6,9 +6,9 @@ using Infrastructure.Networks.Services;
 namespace IdentityWebApp.Api.Services;
 
 /// <summary>
-/// Сервис аутентификации пользователей через API.
+/// Реализация сервиса аутентификации пользователей через API.
 /// </summary>
-public class AuthenticationService
+public class AuthenticationService: IAuthenticationService
 {
     private readonly HttpClient _httpClient;
 
@@ -30,16 +30,7 @@ public class AuthenticationService
             ConstantsService.DefaultHttpClientTimeoutSeconds);
     }
 
-    /// <summary>
-    /// Выполняет аутентификацию пользователя.
-    /// </summary>
-    /// <param name="serverName">Имя сервера.</param>
-    /// <param name="port">Порт сервера (может быть <c>null</c>).</param>
-    /// <param name="userName">Имя пользователя.</param>
-    /// <param name="password">Пароль пользователя.</param>
-    /// <param name="useHttps">Использовать протокол Https. По умолчанию <c>true</c>.</param>
-    /// <param name="cancellationToken">Токен отмены.</param>
-    /// <returns>Модель токена.</returns>
+    /// <inheritdoc/>
     public async Task<TokenModel> LoginAsync(
         string serverName, 
         int? port, 

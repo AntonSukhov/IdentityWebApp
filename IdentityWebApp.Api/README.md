@@ -28,7 +28,8 @@ Example:
 Main Types  
 
 The main types provided by this library are:
-
+    
+    IdentityWebApp.Api.Services.IAuthenticationService
     IdentityWebApp.Api.Services.AuthenticationService
     IdentityWebApp.Api.Models.TokenModel
 
