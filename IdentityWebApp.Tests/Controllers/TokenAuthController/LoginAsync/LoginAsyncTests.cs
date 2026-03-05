@@ -1,6 +1,7 @@
 using IdentityWebApp.Areas.Identity.Models;
 using IdentityWebApp.Data;
 using IdentityWebApp.Tests.TestSupport.Constants;
+using Infrastructure.Testing.Common;
 using Infrastructure.Testing.TestCases;
 using Infrastructure.Testing.XUnit;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,8 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
     public async Task SucceedsForExistedUser(TestCaseInputWithStubs<UserLoginModel> testCase)
     {
         // Arrange:
-        var stubOutput = testCase.StubOutputs[(UserManagerMethodNames.FindByNameAsync,
+        var stubOutput = testCase.StubOutputs[new StubOutputKey(
+            UserManagerMethodNames.FindByNameAsync,
             StubSequenceConstants.First)];
         var stubOutputData = stubOutput.GetOutputData<ApplicationUser>();
 
@@ -64,7 +66,8 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
         TestCaseInputWithStubs<UserLoginModel> testCase)
     {
           // Arrange:
-        var stubOutput = testCase.StubOutputs[(UserManagerMethodNames.FindByNameAsync,
+        var stubOutput = testCase.StubOutputs[new StubOutputKey(
+            UserManagerMethodNames.FindByNameAsync,
             StubSequenceConstants.First)];
         var stubOutputData = stubOutput.GetOutputData<ApplicationUser>();
 
@@ -115,7 +118,8 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
         TestCaseInputWithStubs<UserContext> testCase)
     {
         // Arrange:
-        var stubOutput = testCase.StubOutputs[(UserManagerMethodNames.FindByNameAsync,
+        var stubOutput = testCase.StubOutputs[new StubOutputKey(
+            UserManagerMethodNames.FindByNameAsync,
             StubSequenceConstants.First)];
         var stubOutputData = stubOutput.GetOutputData<ApplicationUser>();
         var millisecondsDelay = testCase.InputData.TokenLifetimeSeconds * 1000 + 10;
@@ -203,7 +207,8 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
         TestCaseInputWithStubs<UserLoginModel> testCase)
     {
         // Arrange:
-        var stubOutput = testCase.StubOutputs[(UserManagerMethodNames.FindByNameAsync,
+        var stubOutput = testCase.StubOutputs[new StubOutputKey(
+            UserManagerMethodNames.FindByNameAsync,
             StubSequenceConstants.First)];
         var stubOutputData = stubOutput.GetOutputData<ApplicationUser>();
 

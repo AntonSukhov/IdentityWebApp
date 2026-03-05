@@ -31,9 +31,9 @@ public static class LoginAsyncTestCases
                     Login = Email, 
                     Password = Password
                 }, 
-                StubOutputs =new Dictionary<(string MethodName, int SequenceNumber), StubOutput>
+                StubOutputs =new Dictionary<StubOutputKey, StubOutput>
                 {
-                    [(UserManagerMethodNames.FindByNameAsync, 
+                    [new StubOutputKey(UserManagerMethodNames.FindByNameAsync, 
                         StubSequenceConstants.First)] = new StubOutput
                     {
                         OutputData =  new ApplicationUser 
@@ -107,9 +107,9 @@ public static class LoginAsyncTestCases
                     Login = Email, 
                     Password = string.Empty
                 },
-                StubOutputs =new Dictionary<(string MethodName, int SequenceNumber), StubOutput>
+                StubOutputs =new Dictionary<StubOutputKey, StubOutput>
                 {
-                    [(UserManagerMethodNames.FindByNameAsync, 
+                    [new StubOutputKey(UserManagerMethodNames.FindByNameAsync, 
                         StubSequenceConstants.First)] = new StubOutput
                     {
                         OutputData =  new ApplicationUser 
@@ -132,9 +132,9 @@ public static class LoginAsyncTestCases
                     Login = Email, 
                     Password = "  "
                 },
-                StubOutputs =new Dictionary<(string MethodName, int SequenceNumber), StubOutput>
+                StubOutputs =new Dictionary<StubOutputKey, StubOutput>
                 {
-                    [(UserManagerMethodNames.FindByNameAsync, 
+                    [new StubOutputKey(UserManagerMethodNames.FindByNameAsync, 
                         StubSequenceConstants.First)] = new StubOutput
                     {
                         OutputData =  new ApplicationUser 
@@ -171,9 +171,9 @@ public static class LoginAsyncTestCases
                     },
                     TokenLifetimeSeconds = 1
                 },
-                StubOutputs =new Dictionary<(string MethodName, int SequenceNumber), StubOutput>
+                StubOutputs =new Dictionary<StubOutputKey, StubOutput>
                 {
-                    [(UserManagerMethodNames.FindByNameAsync, 
+                    [new StubOutputKey(UserManagerMethodNames.FindByNameAsync, 
                         StubSequenceConstants.First)] = new StubOutput
                     {
                         OutputData =  new ApplicationUser 
@@ -200,9 +200,9 @@ public static class LoginAsyncTestCases
                     },
                     TokenLifetimeSeconds = 3
                 },
-                StubOutputs =new Dictionary<(string MethodName, int SequenceNumber), StubOutput>
+                StubOutputs =new Dictionary<StubOutputKey, StubOutput>
                 {
-                    [(UserManagerMethodNames.FindByNameAsync, 
+                    [new StubOutputKey(UserManagerMethodNames.FindByNameAsync, 
                         StubSequenceConstants.First)] = new StubOutput
                     {
                         OutputData =  new ApplicationUser 
@@ -229,9 +229,9 @@ public static class LoginAsyncTestCases
                     },
                     TokenLifetimeSeconds = 5
                 },
-                StubOutputs =new Dictionary<(string MethodName, int SequenceNumber), StubOutput>
+                StubOutputs =new Dictionary<StubOutputKey, StubOutput>
                 {
-                    [(UserManagerMethodNames.FindByNameAsync, 
+                    [new StubOutputKey(UserManagerMethodNames.FindByNameAsync, 
                         StubSequenceConstants.First)] = new StubOutput
                     {
                         OutputData =  new ApplicationUser 
@@ -265,9 +265,9 @@ public static class LoginAsyncTestCases
                     Login = Email, 
                     Password = Password
                 },
-                StubOutputs = new Dictionary<(string MethodName, int SequenceNumber), StubOutput>
+                StubOutputs = new Dictionary<StubOutputKey, StubOutput>
                 {
-                    [(UserManagerMethodNames.FindByNameAsync, 
+                    [new StubOutputKey(UserManagerMethodNames.FindByNameAsync, 
                         StubSequenceConstants.First)] = new StubOutput
                     {
                         OutputData =  new ApplicationUser 
