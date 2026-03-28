@@ -78,13 +78,9 @@ public class TokenAuthControllerFixture
 
     private static Mock<IConfiguration> CreateConfigurationMock()
     {
-       var secretKey = "ZWbw+SVetnbgtsBvc5p6POkDHSWsgO+bN0qtWjnXBbE=";
-
        var configurationMock = new Mock<IConfiguration>();
         configurationMock.Setup(c => c[ConstantsService.JwtKeySectionName])
                          .Returns(CryptographyService.GenerateSecureKey());
-        configurationMock.Setup(c => c[ConstantsService.SKeySectionName])
-                         .Returns(secretKey);
 
         return configurationMock;
     }
