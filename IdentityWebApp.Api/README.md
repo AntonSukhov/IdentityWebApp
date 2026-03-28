@@ -24,6 +24,20 @@ Example:
 
     Console.WriteLine($"Token: {loginResult.Value} Expires: {loginResult.Expires}");
 
+Using the ServiceCollectionExtensions class
+
+Example:
+
+    // Scoped (default)
+    builder.Services.AddIdentityWebAppAuthentication();
+
+    // Transient
+    builder.Services.AddIdentityWebAppAuthentication(ServiceLifetime.Transient);
+
+    // Singleton
+    builder.Services.AddIdentityWebAppAuthentication(ServiceLifetime.Singleton);
+
+
 
 Main Types  
 
@@ -32,6 +46,7 @@ The main types provided by this library are:
     IdentityWebApp.Api.Services.IAuthenticationService
     IdentityWebApp.Api.Services.AuthenticationService
     IdentityWebApp.Api.Models.TokenModel
+    IdentityWebApp.Api.Extensions.ServiceCollectionExtensions
 
 
 Feedback & Contributing
