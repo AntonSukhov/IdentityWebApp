@@ -18,6 +18,13 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
     {
+        // Регистрируем именованный HttpClient с настройками
+        services.AddHttpClient(ConstantsService.HttpClientName, client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(ConstantsService.DefaultHttpClientTimeoutSeconds);
+        });
+
+        // Регистрируем сервис аутентификации с указанным временем жизни
         var serviceDescriptor = new ServiceDescriptor(
             typeof(IAuthenticationService),
             typeof(AuthenticationService),

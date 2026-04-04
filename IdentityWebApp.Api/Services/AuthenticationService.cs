@@ -1,7 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using IdentityWebApp.Api.Models;
-using Infrastructure.Networks.Services;
 
 namespace IdentityWebApp.Api.Services;
 
@@ -10,24 +9,17 @@ namespace IdentityWebApp.Api.Services;
 /// </summary>
 public class AuthenticationService: IAuthenticationService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     /// <summary>
     /// Инициализирует экземпляр <see cref="AuthenticationService"/>.
     /// </summary>
-    public AuthenticationService() : this(HttpClientService.CreateDefaultHttpClient()) {}
-
-    /// <summary>
-    /// Инициализирует экземпляр <see cref="AuthenticationService"/>.
-    /// </summary>
-    /// <param name="httpClient">Клиент для работы с API.</param>
-    public AuthenticationService(HttpClient httpClient)
+    /// <param name="httpClientFactory">Фабрика создания http-клиента.</param>
+    public AuthenticationService(IHttpClientFactory httpClientFactory)
     {
-        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentNullException.ThrowIfNull(httpClientFactory);
 
-        _httpClient = httpClient; 
-        _httpClient.Timeout = TimeSpan.FromSeconds(
-            ConstantsService.DefaultHttpClientTimeoutSeconds);
+        _httpClientFactory =  httpClientFactory;
     }
 
     /// <inheritdoc/>
@@ -45,12 +37,24 @@ public class AuthenticationService: IAuthenticationService
 
         var userModel = new UserModel { Login = userName, Password = password };
 
-        var baseAddress = GetBaseUri(serverName, port, useHttps);
-        _httpClient.BaseAddress = new Uri(baseAddress);
+        var baseAddress = GetBaseAddress(serverName, port, useHttps);
+
+        // Получаем именованный клиент с настройками из DI
+        var httpClient = _httpClientFactory.CreateClient(ConstantsService.HttpClientName);
+
+        // Устанавливаем BaseAddress динамически
+        try
+        {
+            httpClient.BaseAddress = new Uri(baseAddress);
+        }
+        catch (UriFormatException ex)
+        {
+            throw new InvalidOperationException(ConstantsService.ErrorInvalidServerAddress, ex);
+        }
 
         try
         {
-            var response = await _httpClient.PostAsJsonAsync(
+            var response = await httpClient.PostAsJsonAsync(
                 ConstantsService.LoginUri,
                 userModel,
                 JsonSerializerOptions.Default,
@@ -100,7 +104,7 @@ public class AuthenticationService: IAuthenticationService
     /// <param name="port">Порт сервера (может быть <c>null</c>).</param>
     /// <param name="useHttps">Использовать протокол Https. По умолчанию <c>true</c>.</param>
     /// <returns>Строка с базовым адресом.</returns>
-    private static string GetBaseUri(string serverName, int? port, bool useHttps = true)
+    private static string GetBaseAddress(string serverName, int? port, bool useHttps = true)
     {
         var scheme = useHttps
             ? ConstantsService.HttpsApiScheme 

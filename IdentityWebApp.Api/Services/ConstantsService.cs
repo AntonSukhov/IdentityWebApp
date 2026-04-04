@@ -62,8 +62,13 @@ internal static class ConstantsService
     /// </summary>
     public const string HttpsApiScheme = "https";
 
-     /// <summary>
+    /// <summary>
     /// Схема для API (HTTP).
     /// </summary>
     public const string HttpApiScheme = "http";
+
+    /// <summary>
+    /// Название http-клиента.
+    /// </summary>
+    public const string HttpClientName = "IdentityWebApi";
 }
