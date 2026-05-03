@@ -1,8 +1,8 @@
 using System.Text;
+using IdentityWebApp.Constants;
 using IdentityWebApp.Data;
 using IdentityWebApp.Extensions;
 using IdentityWebApp.Other.Settings;
-using IdentityWebApp.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -34,9 +34,11 @@ internal class Startup: Infrastructure.AspNetCore.StartupBase
 
         var isDevelopment = Environment.IsDevelopment();
         
-        var connectionString = Configuration.GetConnectionString(ConstantsService.DefaultConnectionSectionName) ?? 
-            throw new InvalidOperationException($"Строка подключения '{ConstantsService.DefaultConnectionSectionName}' не найдена.");
-            
+        var connectionString = Configuration.GetConnectionString(AppConstants.DefaultConnectionSectionName) ?? 
+            throw new InvalidOperationException(
+                string.Format(ErrorMessagesConstants.ConnectionStringNotFound, 
+                    AppConstants.DefaultConnectionSectionName));
+                
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString));
         services.AddDatabaseDeveloperPageExceptionFilter();
@@ -57,21 +59,21 @@ internal class Startup: Infrastructure.AspNetCore.StartupBase
         services.AddRazorPages();                                 
         services.AddControllers();
       
-        var smtpSettings = Configuration.GetSection(ConstantsService.SmtpSettingsSectionName) ?? 
+        var smtpSettings = Configuration.GetSection(AppConstants.SmtpSettingsSectionName) ?? 
             throw new InvalidOperationException(
-                ConstantsService.GenerateSectionNotFoundErrorMessage(ConstantsService.SmtpSettingsSectionName));
+                string.Format(ErrorMessagesConstants.SectionNotFound, AppConstants.SmtpSettingsSectionName));
 
         services.Configure<SmtpSettings>(smtpSettings);
 
-        var jwtSettings = Configuration.GetSection(ConstantsService.JwtSettingsSectionName) ?? 
+        var jwtSettings = Configuration.GetSection(AppConstants.JwtSettingsSectionName) ?? 
             throw new InvalidOperationException(
-                ConstantsService.GenerateSectionNotFoundErrorMessage(ConstantsService.JwtSettingsSectionName));
+                string.Format(ErrorMessagesConstants.SectionNotFound, AppConstants.JwtSettingsSectionName));
 
         services.Configure<JwtSettings>(jwtSettings);
 
         services.ConfigureApplicationCookie(options =>
         {
-            options.Cookie.Name = ConstantsService.DefaultCookieName;
+            options.Cookie.Name = AppConstants.DefaultCookieName;
             options.ExpireTimeSpan = TimeSpan.FromMinutes(20);  //Задает дату истечения срока действия файла cookie
         });
 
@@ -82,7 +84,7 @@ internal class Startup: Infrastructure.AspNetCore.StartupBase
         services.AddAuthentication()
                 .AddJwtBearer(options => 
         {
-            var apiKey = Configuration[ConstantsService.JwtKeySectionName] ?? string.Empty;
+            var apiKey = Configuration[AppConstants.JwtKeySectionName] ?? string.Empty;
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKey));
 
             options.SaveToken = true;                       //Токен будет сохранен в AuthenticationProperties

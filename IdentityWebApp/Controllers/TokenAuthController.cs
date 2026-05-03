@@ -2,9 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using IdentityWebApp.Areas.Identity.Models;
+using IdentityWebApp.Constants;
 using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
-using IdentityWebApp.Services;
 using Infrastructure.Caching.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -121,7 +121,7 @@ public class TokenAuthController : ControllerBase
 
         authClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-        var apiKey = _configuration[ConstantsService.JwtKeySectionName] ?? string.Empty;
+        var apiKey = _configuration[AppConstants.JwtKeySectionName] ?? string.Empty;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKey));
 
         var tokenDescriptor = new SecurityTokenDescriptor
