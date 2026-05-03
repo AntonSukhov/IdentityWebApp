@@ -1,6 +1,6 @@
+using IdentityWebApp.Constants;
 using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
-using IdentityWebApp.Services;
 using Infrastructure.Caching.Services;
 using Infrastructure.Security.Services;
 using Microsoft.AspNetCore.Identity;
@@ -79,7 +79,7 @@ public class TokenAuthControllerFixture
     private static Mock<IConfiguration> CreateConfigurationMock()
     {
        var configurationMock = new Mock<IConfiguration>();
-        configurationMock.Setup(c => c[ConstantsService.JwtKeySectionName])
+        configurationMock.Setup(c => c[AppConstants.JwtKeySectionName])
                          .Returns(CryptographyService.GenerateSecureKey());
 
         return configurationMock;
