@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>IdentityWebApp.Api</PackageId>
-    <Version>2.0.0</Version>
+    <Version>3.0.0</Version>
     <Authors>Sukhov A.A.</Authors>
     <Description>The package simplifies the implementation of secure user authentication in web applications by handling HTTP requests, token management, and encryption. 
         It offers a clean and intuitive interface for interacting with authentication endpoints, abstracting away the complexity of low-level implementation details. 
@@ -18,9 +18,8 @@
     <Copyright>© 2026 Sukhov A.A. All rights reserved.</Copyright>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.7" />
   </ItemGroup>
 </Project>

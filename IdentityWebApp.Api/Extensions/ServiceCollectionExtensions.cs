@@ -1,4 +1,8 @@
+using IdentityWebApp.Api.Constants;
+using IdentityWebApp.Api.Helpers;
 using IdentityWebApp.Api.Services;
+using IdentityWebApp.Api.Settings;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IdentityWebApp.Api.Extensions;
@@ -12,16 +16,22 @@ public static class ServiceCollectionExtensions
     /// Добавляет сервис аутентификации пользователей для IdentityWebApp API.
     /// </summary>
     /// <param name="services">Коллекция сервисов DI‑контейнера.</param>
+    /// <param name="configuration"></param>
     /// <param name="serviceLifetime">Время жизни сервиса.</param>
     /// <returns>Коллекция сервисов для поддержки цепочки вызовов.</returns>
     public static IServiceCollection AddIdentityWebAppAuthentication(
         this IServiceCollection services,
+        IConfiguration configuration,
         ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
     {
+        var authenticationSettings = configuration.GetSection(ApiConstants.AuthenticationSectionName)
+                                                  .Get<AuthenticationSettings>();
+
         // Регистрируем именованный HttpClient с настройками
-        services.AddHttpClient(ConstantsService.HttpClientName, client =>
-        {
-            client.Timeout = TimeSpan.FromSeconds(ConstantsService.DefaultHttpClientTimeoutSeconds);
+        services.AddHttpClient(ApiConstants.HttpClientName, client =>
+        {          
+            client.BaseAddress = ApiUrlHelper.GetBaseAddress(authenticationSettings);
+            client.Timeout = TimeSpan.FromSeconds(ApiConstants.DefaultHttpClientTimeoutSeconds);
         });
 
         // Регистрируем сервис аутентификации с указанным временем жизни
