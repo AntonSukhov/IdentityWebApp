@@ -22,12 +22,6 @@ using IdentityWebApp.Api.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 
-// Create service collection and HttpClientFactory
-var services = new ServiceCollection();
-services.AddHttpClient();
-var serviceProvider = services.BuildServiceProvider();
-var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-
 // Configure authentication settings
 var authSettings = new AuthenticationSettings
 {
@@ -39,16 +33,17 @@ var authSettings = new AuthenticationSettings
 // Get base address
 var baseAddress = ApiUrlHelper.GetBaseAddress(authSettings);
 
-// Register named HttpClient
+// Create service collection and HttpClientFactory
+var services = new ServiceCollection();
+
 services.AddHttpClient(ApiConstants.HttpClientName, client =>
 {
     client.BaseAddress = baseAddress;
     client.Timeout = TimeSpan.FromSeconds(ApiConstants.DefaultHttpClientTimeoutSeconds);
 });
 
-// Recreate service provider
-serviceProvider = services.BuildServiceProvider();
-httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+var serviceProvider = services.BuildServiceProvider();
+var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
 
 // Create AuthenticationService instance
 var authService = new AuthenticationService(httpClientFactory);
@@ -117,6 +112,10 @@ The main types provided by this library are:
 * IdentityWebApp.Api.Models.UserModel
 * IdentityWebApp.Api.Settings.AuthenticationSettings
 * IdentityWebApp.Api.Extensions.ServiceCollectionExtensions
+* IdentityWebApp.Api.Helpers.ApiUrlHelper
+* IdentityWebApp.Api.Constants.ApiConstants
+* IdentityWebApp.Api.Constants.ErrorMessagesConstants
+
 
 
 # Feedback & Contributing

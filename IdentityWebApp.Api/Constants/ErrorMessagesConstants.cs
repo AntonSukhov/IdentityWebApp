@@ -3,7 +3,7 @@ namespace IdentityWebApp.Api.Constants;
 // <summary>
 /// Константы сообщений об ошибках.
 /// </summary>
-internal static class ErrorMessagesConstants
+public static class ErrorMessagesConstants
 {
     /// <summary>
     /// Ошибка: неверные учётные данные.

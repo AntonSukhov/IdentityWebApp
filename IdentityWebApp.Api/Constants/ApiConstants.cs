@@ -3,7 +3,7 @@ namespace IdentityWebApp.Api.Constants;
 /// <summary>
 /// Константы API.
 /// </summary>
-internal static class ApiConstants
+public static class ApiConstants
 {
     public const string LoginUri = "/api/token-auth/login";
     

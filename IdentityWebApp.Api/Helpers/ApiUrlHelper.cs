@@ -6,7 +6,7 @@ namespace IdentityWebApp.Api.Helpers;
 // <summary>
 /// Помощник для работы с URL API.
 /// </summary>
-internal static class ApiUrlHelper
+public static class ApiUrlHelper
 {
     /// <summary>
     /// Получает базовый адрес для API на основе настроек аутентификации.
