@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using IdentityWebApp.Areas.Identity.Models;
+using IdentityWebApp.Areas.Identity.Validators;
 using IdentityWebApp.Constants;
 using IdentityWebApp.Data;
 using IdentityWebApp.Other.Settings;
@@ -50,9 +51,19 @@ public class TokenAuthController : ControllerBase
     /// <param name="model">Модель, содержащая учетные данные пользователя, включая имя пользователя и пароль.</param>
     /// <returns>Результат аутентификации пользователя.</returns>
     [HttpPost("login")]
-    public async Task<IActionResult> LoginAsync([FromBody] UserLoginModel model)
+    public async Task<IActionResult> LoginAsync(UserLoginModel model)
     {
-        ArgumentNullException.ThrowIfNull(model);
+        var validationErrors = UserLoginModelValidator.Validate(model);
+
+        if(validationErrors.Count > 0)
+        {
+            foreach (var error in validationErrors)
+            {
+                ModelState.AddModelError(string.Empty, error);
+            }
+            
+            return BadRequest(ModelState);
+        }
 
         var user = await _userManager.FindByNameAsync(model.Login);
 
