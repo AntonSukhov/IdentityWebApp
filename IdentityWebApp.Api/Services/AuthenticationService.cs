@@ -29,9 +29,6 @@ public class AuthenticationService: IAuthenticationService
         string password,
         CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(userName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(password);
-
         var userModel = new UserModel { Login = userName, Password = password };
 
         // Получаем именованный клиент с настройками из DI
