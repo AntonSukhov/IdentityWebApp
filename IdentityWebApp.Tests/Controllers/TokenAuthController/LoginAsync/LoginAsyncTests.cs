@@ -10,7 +10,8 @@ using Moq;
 namespace IdentityWebApp.Tests.Controllers.TokenAuthController.LoginAsync;
 
 /// <summary>
-/// Тесты для метода <see cref="IdentityWebApp.Controllers.TokenAuthController.LoginAsync"/>.
+/// Тесты для метода 
+/// <see cref="IdentityWebApp.Controllers.TokenAuthController.LoginAsync"/>.
 /// </summary>
 public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
 {
@@ -22,10 +23,11 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
     public LoginAsyncTests(TokenAuthControllerFixture fixture) : base(fixture) { }
     
     /// <summary>
-    /// Проверяет, что метод <see cref="LoginAsync"/> успешно выполняется для существующего пользователя.
+    /// Проверяет, что метод <see cref="LoginAsync"/> 
+    /// успешно выполняется для существующего пользователя.
     /// </summary>
     [Theory]
-    [MemberData(nameof(LoginAsyncTestCases.ExistedUserTestCases),
+    [MemberData(nameof(LoginAsyncTestCases.ExistedUser),
                 MemberType = typeof(LoginAsyncTestCases))]
     public async Task SucceedsForExistedUser(TestCaseInputWithStubs<UserLoginModel> testCase)
     {
@@ -56,11 +58,11 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
     }
 
     /// <summary>
-    /// Проверяет метод <see cref="LoginAsync"/> для существующего пользователя с временем жизни токена, 
-    /// большем чем период времени между повторными запросами.
+    /// Проверяет метод <see cref="LoginAsync"/> 
+    /// для существующего пользователя с временем жизни токена, большем чем период времени между повторными запросами.
     /// </summary>
     [Theory]
-    [MemberData(nameof(LoginAsyncTestCases.ExistedUserTokenLifetimeExceedsRequestIntervalTestCases),
+    [MemberData(nameof(LoginAsyncTestCases.ExistedUserTokenLifetimeExceedsRequestInterval),
                 MemberType = typeof(LoginAsyncTestCases))]
     public async Task ExistedUserTokenLifetimeExceedsRequestInterval(
         TestCaseInputWithStubs<UserLoginModel> testCase)
@@ -112,7 +114,7 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
     /// Проверяет метод <see cref="LoginAsync"/> для существующего пользователя с малым временем жизни токена.
     /// </summary>
     [Theory]
-    [MemberData(nameof(LoginAsyncTestCases.ExistedUserWithShortTokenLifetimeTestCases),
+    [MemberData(nameof(LoginAsyncTestCases.ExistedUserWithShortTokenLifetime),
                 MemberType = typeof(LoginAsyncTestCases))]
     public async Task ExistedUserWithShortTokenLifetime(
         TestCaseInputWithStubs<UserContext> testCase)
@@ -174,7 +176,7 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
     /// Проверяет, что метод <see cref="LoginAsync"/> не выполняет аутентификацию для несуществующего пользователя.
     /// </summary>
     [Theory]
-    [MemberData(nameof(LoginAsyncTestCases.UnknownUserTestCases),
+    [MemberData(nameof(LoginAsyncTestCases.UnknownUser),
                 MemberType = typeof(LoginAsyncTestCases))]
     public async Task NoTokenForUnknownUser(TestCaseInput<UserLoginModel> testCase)
     {
@@ -193,7 +195,8 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
 
         // Assert: 
         Assert.NotNull(result);  
-        Assert.IsType<UnauthorizedResult>(result);   
+        Assert.True(result is BadRequestObjectResult ||
+                    result is UnauthorizedResult);   
     }
         
     /// <summary>
@@ -201,31 +204,30 @@ public class LoginAsyncTests : BaseTest<TokenAuthControllerFixture>
     /// для пользователя c пустым или содержащим только пробелы паролем.
     /// </summary>
     [Theory]
-    [MemberData(nameof(LoginAsyncTestCases.EmptyOrWhitespacePasswordTestCases),
+    [MemberData(nameof(LoginAsyncTestCases.EmptyOrWhitespacePassword),
                 MemberType = typeof(LoginAsyncTestCases))]
     public async Task FailsForUserWithEmptyOrWhitespacePassword(
-        TestCaseInputWithStubs<UserLoginModel> testCase)
+        TestCaseInput<UserLoginModel> testCase)
     {
-        // Arrange:
-        var stubOutput = testCase.StubOutputs[new StubOutputKey(
-            UserManagerMethodNames.FindByNameAsync,
-            StubSequenceConstants.First)];
-        var stubOutputData = stubOutput.GetOutputData<ApplicationUser>();
+        // Arrange & Act & Assert:
+        var result = await _fixture.TokenAuthController.LoginAsync(testCase.InputData);
 
-        _fixture.UserManagerMock.Setup(p => p.FindByNameAsync(It.IsAny<string>()))
-                                .ReturnsAsync(stubOutputData);
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
 
-        _fixture.UserManagerMock.Setup(p => p.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
-                                .ReturnsAsync(false);
+    /// <summary>
+    /// Проверяет, что метод <see cref="LoginAsync"/> не выполняет аутентификацию 
+    /// для пользователя с логином, превышающим максимально допустимую длину.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(LoginAsyncTestCases.LoginExceedsMaxLength),
+                MemberType = typeof(LoginAsyncTestCases))]
+    public async Task FailsForUserWithLoginExceedsMaxLength(
+        TestCaseInput<UserLoginModel> testCase)
+    {
+        // Arrange & Act & Assert:
+        var result = await _fixture.TokenAuthController.LoginAsync(testCase.InputData);
 
-        _fixture.UserManagerMock.Setup(p => p.GetRolesAsync(It.IsAny<ApplicationUser>()))
-                                .Returns(Task.FromResult<IList<string>>([]));
-
-        // Act & Assert: 
-        var result =  await _fixture.TokenAuthController.LoginAsync(testCase.InputData);
-
-        Assert.True(
-            result is UnauthorizedResult
-        );
+        Assert.IsType<BadRequestObjectResult>(result);
     }
 }

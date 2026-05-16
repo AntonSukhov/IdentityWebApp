@@ -1,4 +1,5 @@
 using IdentityWebApp.Areas.Identity.Models;
+using IdentityWebApp.Constants;
 using IdentityWebApp.Data;
 using IdentityWebApp.Tests.TestSupport.Constants;
 using Infrastructure.Testing.Common;
@@ -19,7 +20,7 @@ public static class LoginAsyncTestCases
     /// Получает сценарии успешного выполнения метода 
     /// <see cref="IdentityWebApp.Controllers.TokenAuthController.LoginAsync"/>.
     /// </summary>
-    public static TheoryData<TestCaseInputWithStubs<UserLoginModel>> ExistedUserTestCases
+    public static TheoryData<TestCaseInputWithStubs<UserLoginModel>> ExistedUser
     {
         get
         {
@@ -59,7 +60,7 @@ public static class LoginAsyncTestCases
     /// <see cref="IdentityWebApp.Controllers.TokenAuthController.LoginAsync"/> 
     /// для не существующих пользователей системы.
     /// </summary>
-    public static TheoryData<TestCaseInput<UserLoginModel>> UnknownUserTestCases
+    public static TheoryData<TestCaseInput<UserLoginModel>> UnknownUser
     {
         get
         {
@@ -105,11 +106,11 @@ public static class LoginAsyncTestCases
     /// <see cref="IdentityWebApp.Controllers.TokenAuthController.LoginAsync"/> 
     /// для пользователя системы с пустым или содержащим только пробелы паролем. 
     /// </summary>
-    public static TheoryData<TestCaseInputWithStubs<UserLoginModel>> EmptyOrWhitespacePasswordTestCases
+    public static TheoryData<TestCaseInput<UserLoginModel>> EmptyOrWhitespacePassword
     {
         get
         {
-            var theoryData = new TheoryData<TestCaseInputWithStubs<UserLoginModel>>
+            var theoryData = new TheoryData<TestCaseInput<UserLoginModel>>
             {
                 new() {
                     ScenarioNumber = 1,
@@ -118,20 +119,6 @@ public static class LoginAsyncTestCases
                     { 
                         Login = Email, 
                         Password = string.Empty
-                    },
-                    StubOutputs =new Dictionary<StubOutputKey, StubOutput>
-                    {
-                        [new StubOutputKey(UserManagerMethodNames.FindByNameAsync, 
-                            StubSequenceConstants.First)] = new StubOutput
-                        {
-                            OutputData =  new ApplicationUser 
-                            { 
-                                Id = Guid.NewGuid().ToString(), 
-                                Email = Email, 
-                                UserName = Email 
-                            },
-                            ExpectedType = typeof(ApplicationUser)
-                        }
                     }
                 },
                 new() {
@@ -142,21 +129,7 @@ public static class LoginAsyncTestCases
                     { 
                         Login = Email, 
                         Password = "  "
-                    },
-                    StubOutputs =new Dictionary<StubOutputKey, StubOutput>
-                    {
-                        [new StubOutputKey(UserManagerMethodNames.FindByNameAsync, 
-                            StubSequenceConstants.First)] = new StubOutput
-                        {
-                            OutputData =  new ApplicationUser 
-                            { 
-                                Id = Guid.NewGuid().ToString(), 
-                                Email = Email, 
-                                UserName = Email 
-                            },
-                            ExpectedType = typeof(ApplicationUser)
-                        }
-                    }
+                    }         
                 }
             };
 
@@ -169,7 +142,7 @@ public static class LoginAsyncTestCases
     /// <see cref="IdentityWebApp.Controllers.TokenAuthController.LoginAsync"/> 
     /// для существующего пользователя системы с коротким временем жизни токена. 
     /// </summary>
-    public static TheoryData<TestCaseInputWithStubs<UserContext>> ExistedUserWithShortTokenLifetimeTestCases
+    public static TheoryData<TestCaseInputWithStubs<UserContext>> ExistedUserWithShortTokenLifetime
     {
         get
         {
@@ -272,7 +245,7 @@ public static class LoginAsyncTestCases
     ///  период времени между повторными запросами. 
     /// </summary>
     public static TheoryData<TestCaseInputWithStubs<UserLoginModel>> 
-        ExistedUserTokenLifetimeExceedsRequestIntervalTestCases
+        ExistedUserTokenLifetimeExceedsRequestInterval
     {
         get
         {
@@ -300,6 +273,32 @@ public static class LoginAsyncTestCases
                             },
                             ExpectedType = typeof(ApplicationUser)
                         }
+                    }
+                }
+            };
+
+            return theoryData;
+        }
+    }
+
+    /// Получает сценарии выполнения метода 
+    /// <see cref="IdentityWebApp.Controllers.TokenAuthController.LoginAsync"/> 
+    /// для пользователя с логином, превышающим максимально допустимую длину.
+    /// </summary>
+    public static TheoryData<TestCaseInput<UserLoginModel>> LoginExceedsMaxLength
+    {
+        get
+        {
+            var theoryData = new TheoryData<TestCaseInput<UserLoginModel>>
+            {
+                new() {
+                    ScenarioNumber = 1,
+                    Description = "Проверка отсутствия выдачи токена при попытке авторизации пользователя с логином, " +
+                                 $"превышающим максимально допустимую длину ({AppConstants.UserLoginMaxLength}).",
+                    InputData = new UserLoginModel 
+                    { 
+                        Login = new string('a', short.MaxValue),
+                        Password = Password
                     }
                 }
             };
