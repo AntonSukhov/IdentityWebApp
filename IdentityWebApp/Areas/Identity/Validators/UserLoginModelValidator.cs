@@ -1,4 +1,6 @@
+using IdentityWebApp.Areas.Identity.Dtos;
 using IdentityWebApp.Areas.Identity.Models;
+using IdentityWebApp.Constants;
 
 namespace IdentityWebApp.Areas.Identity.Validators;
 
@@ -15,26 +17,50 @@ public class UserLoginModelValidator
     /// </summary>
     /// <param name="model">Модель для валидации.</param>
     /// <returns> Сообщения об ошибках валидации.</returns>
-    public static IReadOnlyCollection<string> Validate(UserLoginModel model)
+    public static IReadOnlyCollection<ValidationError> Validate(UserLoginModel model)
     {
-        var errors = new List<string>();
+        var errors = new List<ValidationError>();
 
         if (model == null)
         {
-            errors.Add("Модель аутентификации не может быть null");
+            errors.Add(new ValidationError(
+                nameof(UserLoginModel), 
+                ErrorMessagesConstants.UserModelCannotBeNull 
+            ));
+
             return errors.AsReadOnly();
         }
 
         if (string.IsNullOrWhiteSpace(model.Login))
         {
-            errors.Add("Логин не может быть пустым или состоять только из пробелов");
+            errors.Add(new ValidationError(
+                nameof(UserLoginModel.Login), 
+                ErrorMessagesConstants.LoginCannotBeEmpty
+            ));
+        }
+        else if(model.Login.Length > AppConstants.UserLoginMaxLength)
+        {
+            errors.Add(new ValidationError(
+                nameof(UserLoginModel.Login), 
+                GetLoginLengthErrorMessage()
+            ));
         }
 
         if (string.IsNullOrWhiteSpace(model.Password))
         {
-            errors.Add("Пароль не может быть пустым или состоять только из пробелов");
+            errors.Add(new ValidationError(
+                nameof(UserLoginModel.Password),
+                ErrorMessagesConstants.PasswordCannotBeEmpty
+            ));
         }
 
         return errors.AsReadOnly();
+    }
+
+    private static string GetLoginLengthErrorMessage()
+    {
+        return string.Format(
+            ErrorMessagesConstants.LoginLengthExceededWithLimit,
+            AppConstants.UserLoginMaxLength);
     }
 }

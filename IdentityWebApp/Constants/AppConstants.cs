@@ -11,4 +11,5 @@ public static class AppConstants
     public const string DefaultCookieName = "IdentityWebAppCookie";
     public const string JwtKeySectionName = "JWT:ServiceApiKey";
     public const string SKeySectionName = "SK:ServiceApiKey";
+    public const int UserLoginMaxLength = 256;
 }

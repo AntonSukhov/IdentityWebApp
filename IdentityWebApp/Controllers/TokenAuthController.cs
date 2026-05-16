@@ -59,7 +59,7 @@ public class TokenAuthController : ControllerBase
         {
             foreach (var error in validationErrors)
             {
-                ModelState.AddModelError(string.Empty, error);
+                ModelState.AddModelError(error.ErrorKey, error.ErrorMessage);
             }
             
             return BadRequest(ModelState);
