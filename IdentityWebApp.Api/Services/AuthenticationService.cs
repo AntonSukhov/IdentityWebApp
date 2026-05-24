@@ -10,7 +10,7 @@ namespace IdentityWebApp.Api.Services;
 /// </summary>
 public class AuthenticationService: IAuthenticationService
 {
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly HttpClient _httpClient;
 
     /// <summary>
     /// Инициализирует экземпляр <see cref="AuthenticationService"/>.
@@ -20,7 +20,7 @@ public class AuthenticationService: IAuthenticationService
     {
         ArgumentNullException.ThrowIfNull(httpClientFactory);
 
-        _httpClientFactory =  httpClientFactory;
+        _httpClient = httpClientFactory.CreateClient(ApiConstants.HttpClientName);
     }
 
     /// <inheritdoc/>
@@ -31,12 +31,9 @@ public class AuthenticationService: IAuthenticationService
     {
         var userModel = new UserModel { Login = userName, Password = password };
 
-        // Получаем именованный клиент с настройками из DI
-        var httpClient = _httpClientFactory.CreateClient(ApiConstants.HttpClientName);
-
         try
         {
-            var response = await httpClient.PostAsJsonAsync(
+            var response = await _httpClient.PostAsJsonAsync(
                 ApiConstants.LoginUri,
                 userModel,
                 JsonSerializerOptions.Default,
