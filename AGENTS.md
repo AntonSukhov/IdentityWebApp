@@ -4,6 +4,11 @@
 
 **IdentityWebApp** — решение на ASP.NET Core для работы с пользователями приложений на основе ASP.NET Core Identity.
 
+## Документация
+
+- `README.md` — общее описание решения, архитектура, диаграммы (UML, ER), API-методы и обработка ошибок, конфигурация.
+- `IdentityWebApp.Api/README.md` — документация клиентской библиотеки (методы, обработка ошибок, примеры подключения).
+
 ## Структура решения
 
 ```
@@ -30,10 +35,17 @@ IdentityWebApp.sln
 - **Контроллеры**: `Controllers/` (в т.ч. `TokenAuthController`)
 - **Настройки**: `appsettings.json`, секции `ConnectionStrings:DefaultConnection`, `JwtSettings`, `SmtpSettings`
 
+### Контроллер TokenAuthController (API аутентификации)
+
+- **Endpoint**: `POST /api/token-auth/login`, принимает `UserLoginModel { Login, Password }`
+- **Поток**: валидация (`UserLoginModelValidator` → `400 BadRequest`) → `FindByNameAsync` / `CheckPasswordAsync` (неуспех → `401 Unauthorized`) → выдача JWT (`200 OK`, `TokenModel { Value, Expires }`)
+- **Кэширование**: выданный JWT кэшируется через `ICacheService<string, string>` и переиспользуется до истечения срока
+- **JWT**: подпись HMAC-SHA512, время жизни из `JwtSettings.ExpiresInSeconds`
+
 ### База данных
 
 - **Имя БД**: `DbAccounts`
-- **Строка подключения**: `Host=localhost;Port=5432;Database=DbAccounts;Username=postgres;Password=sa`
+- **Строка подключения**: `Host=localhost;Port=5432;Database=DbAccounts;Username=postgres;Password=<пароль — в appsettings.json / User Secrets>`
 - **Таблицы**: 8 таблиц Identity (`AspNetUsers`, `AspNetRoles`, и т.д.) + `__EFMigrationsHistory`
 
 ### Параметры Identity (в `Startup.cs`)
@@ -50,12 +62,13 @@ IdentityWebApp.sln
 - **DI-регистрация**: `AddIdentityWebAppAuthentication(IServiceCollection, IConfiguration)`
 - **Настройки**: секция `Authentication` (`AuthenticationSettings`: `ServerName`, `Port`, `UseHttps`)
 - **Endpoint по умолчанию**: `/api/token-auth/login`
+- **Обработка ошибок** (в `AuthenticationService`): `401` → `InvalidOperationException` («Неверный логин или пароль.»), недоступный сервер / прочие неуспешные статусы → `IOException`, отмена → `OperationCanceledException`; сообщения — в `ErrorMessagesConstants`
 
 ## Тесты (IdentityWebApp.Tests)
 
 - Тесты контроллера `TokenAuthController` находятся в `Controllers/TokenAuthController/`
-- Фикстура: `TokenAuthControllerFixture` (моки `UserManager`, `IConfiguration`, `IOptions<JwtSettings>`)
-- Тест-кейсы: `LoginAsyncTests.cs`, `LoginAsyncTestCases.cs`, `UserContext.cs`
+- Фикстура: `TokenAuthControllerFixture.cs` (моки `UserManager`, `IConfiguration`, `IOptions<JwtSettings>`)
+- Тест-кейсы (в подпапке `LoginAsync/`): `LoginAsyncTests.cs`, `LoginAsyncTestCases.cs`, `UserContext.cs`
 
 ## Команды
 
