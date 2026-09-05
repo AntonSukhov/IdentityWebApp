@@ -11,8 +11,8 @@ The solution includes the client library **IdentityWebApp.Api** (a NuGet package
 1. [General Architecture](#general-architecture)
 2. [Solution Structure and Project Purpose](#solution-structure-and-project-purpose)
 3. [Project Dependency Diagram](#project-dependency-diagram)
-4. [Request Flow (Sequence Diagram)](#request-flow-sequence-diagram)
-5. [UML Class Diagram of the Authentication Domain](#uml-class-diagram-of-the-authentication-domain)
+4. [UML Class Diagram of the Authentication Domain](#uml-class-diagram-of-the-authentication-domain)
+5. [API Methods and Error Handling](#api-methods-and-error-handling)
 6. [Database Model (ER Diagram)](#database-model-er-diagram)
 7. [Build and Run](#build-and-run)
 8. [Configuration](#configuration)
@@ -144,45 +144,6 @@ flowchart TD
 
 ---
 
-## Request Flow (Sequence Diagram)
-
-Example: `POST /api/token-auth/login`
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor C as Client
-    participant Ctrl as TokenAuthController<br/>(IdentityWebApp)
-    participant Val as UserLoginModelValidator
-    participant UM as UserManager<ApplicationUser>
-    participant Cache as ICacheService&lt;string, string&gt;
-    participant Jwt as JwtSecurityTokenHandler
-
-    C->>Ctrl: POST /api/token-auth/login<br/>{ login, password }
-    Ctrl->>Val: Validate(model)
-    Val-->>Ctrl: no errors (or 400 BadRequest)
-    Ctrl->>UM: FindByNameAsync(login)
-    UM-->>Ctrl: ApplicationUser (or 401 Unauthorized)
-    Ctrl->>UM: CheckPasswordAsync(user, password)
-    UM-->>Ctrl: true (or 401 Unauthorized)
-    Ctrl->>Cache: TryGetValue(user.Id)
-    alt cached token is valid
-        Cache-->>Ctrl: token (JWT)
-        Ctrl-->>C: 200 OK (TokenModel)
-    else token missing or expired
-        Ctrl->>UM: GetRolesAsync(user)
-        UM-->>Ctrl: roles
-        Ctrl->>Jwt: CreateToken(claims, ExpiresInSeconds)
-        Jwt-->>Ctrl: JWT (HMAC-SHA512)
-        Ctrl->>Cache: Set(user.Id, token, ValidTo)
-        Ctrl-->>C: 200 OK (TokenModel { value, expires })
-    end
-```
-
-Error handling: validation errors are returned as `400 BadRequest` (ModelState), invalid credentials — as `401 Unauthorized`.
-
----
-
 ## UML Class Diagram of the Authentication Domain
 
 ```mermaid
@@ -237,6 +198,40 @@ classDiagram
 ```
 
 The client library `IdentityWebApp.Api` encapsulates the HTTP interaction: `AuthenticationService` sends a `UserModel` to `/api/token-auth/login`, deserializes the `TokenModel` and handles errors centrally (`InvalidOperationException` on 401, `IOException` when the server is unreachable).
+
+---
+
+## API Methods and Error Handling
+
+### Methods
+
+| Component | Method | Description |
+|---------|--------|-------------|
+| `TokenAuthController` (Web API) | `POST /api/token-auth/login` | Validates the login model, checks credentials via `UserManager` and returns a JWT `TokenModel { value, expires }`; an issued token is cached via `ICacheService<string, string>` and reused until it expires |
+| `AuthenticationService` (IdentityWebApp.Api) | `LoginAsync(userName, password, cancellationToken?)` | Authenticates a user against the API above and returns a `TokenModel`; sends a `POST` request with a `UserModel { login, password }` body |
+
+> 💡 **Note:** The `cancellationToken` parameter is optional (defaults to `CancellationToken.None`). For detailed signatures and XML documentation, see `IAuthenticationService` in your IDE.
+
+### Error Handling
+
+**Server side** (`TokenAuthController`):
+
+| Situation | HTTP status |
+|-----------|-------------|
+| Validation errors (`ModelState`) | `400 BadRequest` |
+| User not found or invalid password | `401 Unauthorized` |
+| Successful authentication | `200 OK` (TokenModel) |
+
+**Client side** (`AuthenticationService` in `IdentityWebApp.Api`):
+
+| Situation | HTTP status | Exception | Message |
+|-----------|-------------|-----------|---------|
+| Invalid login or password | `401 Unauthorized` | `InvalidOperationException` | «Неверный логин или пароль.» |
+| Server unreachable or other non-success response | any non-success | `IOException` | «Ошибка подключения к серверу.» |
+| Unexpected error (e.g. token deserialization failure) | — | `InvalidOperationException` | «Произошла непредвиденная ошибка при аутентификации.» |
+| Operation cancelled via `CancellationToken` | — | `OperationCanceledException` | «Аутентификация отменена.» |
+
+All client-side error messages are centralized in `ErrorMessagesConstants`.
 
 ---
 

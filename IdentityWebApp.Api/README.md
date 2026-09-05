@@ -116,7 +116,26 @@ The main types provided by this library are:
 * IdentityWebApp.Api.Constants.ApiConstants
 * IdentityWebApp.Api.Constants.ErrorMessagesConstants
 
+### Service Methods
 
+| Service | Method | Description |
+|---------|--------|-------------|
+| `AuthenticationService` | `LoginAsync(userName, password, cancellationToken?)` | Authenticates a user against the IdentityWebApp REST API (`POST /api/token-auth/login`) and returns a `TokenModel` (JWT token value and its expiration date) |
+
+> 💡 **Note:** The `cancellationToken` parameter is optional (defaults to `CancellationToken.None`). For detailed signatures and XML documentation, see `IAuthenticationService` in your IDE.
+
+### Error Handling
+
+The `AuthenticationService` handles API errors centrally and converts them into exceptions:
+
+| Situation | HTTP status | Exception | Message |
+|-----------|-------------|-----------|---------|
+| Invalid login or password | `401 Unauthorized` | `InvalidOperationException` | «Неверный логин или пароль.» |
+| Server unreachable or non-success response (e.g. `400 BadRequest`, `500 Internal Server Error`) | any non-success | `IOException` | «Ошибка подключения к серверу.» |
+| Unexpected error (e.g. token deserialization failure) | — | `InvalidOperationException` | «Произошла непредвиденная ошибка при аутентификации.» |
+| Operation cancelled via `CancellationToken` | — | `OperationCanceledException` | «Аутентификация отменена.» |
+
+Server-side validation errors are returned as `400 BadRequest` (ModelState), invalid credentials — as `401 Unauthorized`. All error messages are centralized in `ErrorMessagesConstants`.
 
 # Feedback & Contributing
 
